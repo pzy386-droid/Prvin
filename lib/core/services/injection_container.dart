@@ -7,8 +7,16 @@ import 'package:my_first_app/features/tasks/data/datasources/task_local_datasour
 import 'package:my_first_app/features/tasks/data/datasources/cached_task_datasource.dart';
 import 'package:my_first_app/features/tasks/data/repositories/task_repository_impl.dart';
 import 'package:my_first_app/features/tasks/domain/repositories/task_repository.dart';
+import 'package:my_first_app/features/tasks/domain/usecases/task_manager.dart';
 import 'package:my_first_app/features/pomodoro/data/datasources/pomodoro_local_datasource.dart';
+import 'package:my_first_app/features/pomodoro/data/repositories/pomodoro_repository_impl.dart';
+import 'package:my_first_app/features/pomodoro/domain/repositories/pomodoro_repository.dart';
+import 'package:my_first_app/features/pomodoro/domain/usecases/pomodoro_timer.dart';
 import 'package:my_first_app/features/sync/data/datasources/calendar_event_local_datasource.dart';
+import 'package:my_first_app/features/ai/data/datasources/ai_analytics_local_datasource.dart';
+import 'package:my_first_app/features/ai/data/repositories/ai_analytics_repository_impl.dart';
+import 'package:my_first_app/features/ai/domain/repositories/ai_analytics_repository.dart';
+import 'package:my_first_app/features/ai/domain/usecases/ai_analytics.dart';
 import 'package:my_first_app/core/cache/cache_manager.dart';
 
 /// 依赖注入容器
@@ -72,15 +80,37 @@ Future<void> _initDataSources() async {
   sl.registerLazySingleton<CalendarEventLocalDataSource>(
     () => CalendarEventLocalDataSourceImpl(sl()),
   );
+
+  // AI分析数据源
+  sl.registerLazySingleton<AIAnalyticsLocalDataSource>(
+    () => AIAnalyticsLocalDataSourceImpl(sl()),
+  );
 }
 
 Future<void> _initRepositories() async {
   // 任务仓库
   sl.registerLazySingleton<TaskRepository>(() => TaskRepositoryImpl(sl()));
+
+  // 番茄钟仓库
+  sl.registerLazySingleton<PomodoroRepository>(
+    () => PomodoroRepositoryImpl(sl()),
+  );
+
+  // AI分析仓库
+  sl.registerLazySingleton<AIAnalyticsRepository>(
+    () => AIAnalyticsRepositoryImpl(sl(), sl(), sl()),
+  );
 }
 
 Future<void> _initUseCases() async {
-  // 用例将在后续任务中实现
+  // 任务管理用例
+  sl.registerLazySingleton<TaskManager>(() => TaskManager(sl()));
+
+  // 番茄钟计时器用例
+  sl.registerLazySingleton<PomodoroTimer>(() => PomodoroTimer(sl()));
+
+  // AI分析用例
+  sl.registerLazySingleton<AIAnalytics>(() => AIAnalytics(sl()));
 }
 
 Future<void> _initBlocs() async {

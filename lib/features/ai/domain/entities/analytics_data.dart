@@ -1,12 +1,26 @@
 import 'package:equatable/equatable.dart';
-import 'package:json_annotation/json_annotation.dart';
-import '../../../tasks/data/models/task_model.dart';
 
-part 'analytics_data_model.g.dart';
+/// 任务分类枚举
+enum TaskCategory {
+  /// 工作
+  work,
+
+  /// 学习
+  study,
+
+  /// 个人
+  personal,
+
+  /// 健康
+  health,
+
+  /// 其他
+  other,
+}
 
 /// 生产力趋势数据
-@JsonSerializable()
 class ProductivityTrend extends Equatable {
+  /// 创建生产力趋势数据
   const ProductivityTrend({
     required this.date,
     required this.completedTasks,
@@ -14,9 +28,6 @@ class ProductivityTrend extends Equatable {
     required this.focusMinutes,
     required this.efficiencyScore,
   });
-
-  factory ProductivityTrend.fromJson(Map<String, dynamic> json) =>
-      _$ProductivityTrendFromJson(json);
 
   /// 日期
   final DateTime date;
@@ -33,8 +44,6 @@ class ProductivityTrend extends Equatable {
   /// 效率评分（0-100）
   final double efficiencyScore;
 
-  Map<String, dynamic> toJson() => _$ProductivityTrendToJson(this);
-
   @override
   List<Object?> get props => [
     date,
@@ -46,17 +55,14 @@ class ProductivityTrend extends Equatable {
 }
 
 /// 专注模式数据
-@JsonSerializable()
 class FocusPattern extends Equatable {
+  /// 创建专注模式数据
   const FocusPattern({
     required this.hourOfDay,
     required this.averageFocusMinutes,
     required this.sessionCount,
     required this.successRate,
   });
-
-  factory FocusPattern.fromJson(Map<String, dynamic> json) =>
-      _$FocusPatternFromJson(json);
 
   /// 时间段（小时）
   final int hourOfDay;
@@ -70,8 +76,6 @@ class FocusPattern extends Equatable {
   /// 成功率（0-1）
   final double successRate;
 
-  Map<String, dynamic> toJson() => _$FocusPatternToJson(this);
-
   @override
   List<Object?> get props => [
     hourOfDay,
@@ -82,8 +86,8 @@ class FocusPattern extends Equatable {
 }
 
 /// 任务模式数据
-@JsonSerializable()
 class TaskPattern extends Equatable {
+  /// 创建任务模式数据
   const TaskPattern({
     required this.patternName,
     required this.similarTasks,
@@ -92,9 +96,6 @@ class TaskPattern extends Equatable {
     required this.averageCompletionMinutes,
     required this.confidence,
   });
-
-  factory TaskPattern.fromJson(Map<String, dynamic> json) =>
-      _$TaskPatternFromJson(json);
 
   /// 模式名称
   final String patternName;
@@ -114,8 +115,6 @@ class TaskPattern extends Equatable {
   /// 置信度（0-1）
   final double confidence;
 
-  Map<String, dynamic> toJson() => _$TaskPatternToJson(this);
-
   @override
   List<Object?> get props => [
     patternName,
@@ -128,8 +127,8 @@ class TaskPattern extends Equatable {
 }
 
 /// 专注建议数据
-@JsonSerializable()
 class FocusRecommendation extends Equatable {
+  /// 创建专注建议数据
   const FocusRecommendation({
     required this.type,
     required this.message,
@@ -138,9 +137,6 @@ class FocusRecommendation extends Equatable {
     required this.confidence,
     required this.generatedAt,
   });
-
-  factory FocusRecommendation.fromJson(Map<String, dynamic> json) =>
-      _$FocusRecommendationFromJson(json);
 
   /// 建议类型
   final String type;
@@ -160,8 +156,6 @@ class FocusRecommendation extends Equatable {
   /// 生成时间
   final DateTime generatedAt;
 
-  Map<String, dynamic> toJson() => _$FocusRecommendationToJson(this);
-
   @override
   List<Object?> get props => [
     type,
@@ -174,20 +168,15 @@ class FocusRecommendation extends Equatable {
 }
 
 /// 日期范围数据
-@JsonSerializable()
 class DateRange extends Equatable {
+  /// 创建日期范围数据
   const DateRange({required this.startDate, required this.endDate});
-
-  factory DateRange.fromJson(Map<String, dynamic> json) =>
-      _$DateRangeFromJson(json);
 
   /// 开始日期
   final DateTime startDate;
 
   /// 结束日期
   final DateTime endDate;
-
-  Map<String, dynamic> toJson() => _$DateRangeToJson(this);
 
   /// 获取日期范围的天数
   int get dayCount => endDate.difference(startDate).inDays + 1;
@@ -202,10 +191,10 @@ class DateRange extends Equatable {
   List<Object?> get props => [startDate, endDate];
 }
 
-/// 分析数据主模型
-@JsonSerializable()
-class AnalyticsDataModel extends Equatable {
-  const AnalyticsDataModel({
+/// 分析数据实体
+class AnalyticsData extends Equatable {
+  /// 创建分析数据实体
+  const AnalyticsData({
     required this.userId,
     required this.period,
     required this.timeDistribution,
@@ -216,10 +205,6 @@ class AnalyticsDataModel extends Equatable {
     required this.focusRecommendations,
     required this.generatedAt,
   });
-
-  /// 从JSON创建AnalyticsDataModel
-  factory AnalyticsDataModel.fromJson(Map<String, dynamic> json) =>
-      _$AnalyticsDataModelFromJson(json);
 
   /// 用户ID
   final String userId;
@@ -247,28 +232,6 @@ class AnalyticsDataModel extends Equatable {
 
   /// 生成时间
   final DateTime generatedAt;
-
-  /// 转换为JSON
-  Map<String, dynamic> toJson() => _$AnalyticsDataModelToJson(this);
-
-  /// 数据验证
-  bool isValid() {
-    // 用户ID不能为空
-    if (userId.trim().isEmpty) return false;
-
-    // 完成率必须在0-1之间
-    if (completionRate < 0 || completionRate > 1) return false;
-
-    // 时间分配不能有负值
-    if (timeDistribution.values.any((minutes) => minutes < 0)) return false;
-
-    // 生成时间应该在周期结束时间之后或同一天
-    // 允许一定的时间容差
-    if (generatedAt.isBefore(period.endDate.subtract(const Duration(hours: 1))))
-      return false;
-
-    return true;
-  }
 
   /// 获取总工作时间（分钟）
   int get totalWorkMinutes =>
@@ -313,7 +276,7 @@ class AnalyticsDataModel extends Equatable {
   }
 
   /// 复制并更新分析数据
-  AnalyticsDataModel copyWith({
+  AnalyticsData copyWith({
     String? userId,
     DateRange? period,
     Map<String, int>? timeDistribution,
@@ -324,7 +287,7 @@ class AnalyticsDataModel extends Equatable {
     List<FocusRecommendation>? focusRecommendations,
     DateTime? generatedAt,
   }) {
-    return AnalyticsDataModel(
+    return AnalyticsData(
       userId: userId ?? this.userId,
       period: period ?? this.period,
       timeDistribution: timeDistribution ?? this.timeDistribution,
