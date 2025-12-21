@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:prvin/features/ai/domain/entities/analytics_data.dart';
 import 'package:prvin/features/ai/domain/repositories/ai_analytics_repository.dart';
 import 'package:prvin/features/ai/domain/usecases/ai_analytics.dart';
@@ -99,7 +99,7 @@ void main() {
           type: '最佳专注时间',
           message: '上午9-11点是您的最佳专注时间',
           recommendedMinutes: 25,
-          bestHours: [9, 10, 11],
+          bestHours: const [9, 10, 11],
           confidence: 0.8,
           generatedAt: DateTime.now(),
         ),
@@ -131,14 +131,14 @@ void main() {
           completedTasks: 5,
           totalWorkMinutes: 240,
           focusMinutes: 180,
-          efficiencyScore: 85.0,
+          efficiencyScore: 85,
         ),
         ProductivityTrend(
           date: DateTime.now(),
           completedTasks: 3,
           totalWorkMinutes: 180,
           focusMinutes: 120,
-          efficiencyScore: 75.0,
+          efficiencyScore: 75,
         ),
       ];
 

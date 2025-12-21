@@ -1,7 +1,7 @@
+import 'package:prvin/core/database/database_helper.dart';
+import 'package:prvin/core/error/failures.dart';
+import 'package:prvin/features/pomodoro/data/models/pomodoro_session_model.dart';
 import 'package:sqflite/sqflite.dart';
-import '../../../../core/database/database_helper.dart';
-import '../../../../core/error/failures.dart';
-import '../models/pomodoro_session_model.dart';
 
 /// 番茄钟本地数据源接口
 abstract class PomodoroLocalDataSource {
@@ -19,9 +19,9 @@ abstract class PomodoroLocalDataSource {
 
 /// 番茄钟本地数据源实现
 class PomodoroLocalDataSourceImpl implements PomodoroLocalDataSource {
-  final DatabaseHelper _databaseHelper;
 
   PomodoroLocalDataSourceImpl(this._databaseHelper);
+  final DatabaseHelper _databaseHelper;
 
   @override
   Future<List<PomodoroSessionModel>> getAllSessions() async {
@@ -31,7 +31,7 @@ class PomodoroLocalDataSourceImpl implements PomodoroLocalDataSource {
         'pomodoro_sessions',
         orderBy: 'start_time DESC',
       );
-      return maps.map((map) => _mapToSessionModel(map)).toList();
+      return maps.map(_mapToSessionModel).toList();
     } catch (e) {
       throw DatabaseFailure('获取所有番茄钟会话失败: $e');
     }
@@ -54,7 +54,7 @@ class PomodoroLocalDataSourceImpl implements PomodoroLocalDataSource {
         orderBy: 'start_time ASC',
       );
 
-      return maps.map((map) => _mapToSessionModel(map)).toList();
+      return maps.map(_mapToSessionModel).toList();
     } catch (e) {
       throw DatabaseFailure('获取指定日期番茄钟会话失败: $e');
     }
@@ -70,7 +70,7 @@ class PomodoroLocalDataSourceImpl implements PomodoroLocalDataSource {
         whereArgs: [type.name],
         orderBy: 'start_time DESC',
       );
-      return maps.map((map) => _mapToSessionModel(map)).toList();
+      return maps.map(_mapToSessionModel).toList();
     } catch (e) {
       throw DatabaseFailure('按类型获取番茄钟会话失败: $e');
     }
@@ -86,7 +86,7 @@ class PomodoroLocalDataSourceImpl implements PomodoroLocalDataSource {
         whereArgs: [taskId],
         orderBy: 'start_time DESC',
       );
-      return maps.map((map) => _mapToSessionModel(map)).toList();
+      return maps.map(_mapToSessionModel).toList();
     } catch (e) {
       throw DatabaseFailure('获取任务关联的番茄钟会话失败: $e');
     }
@@ -156,7 +156,7 @@ class PomodoroLocalDataSourceImpl implements PomodoroLocalDataSource {
       );
 
       if (count == 0) {
-        throw DatabaseFailure('番茄钟会话不存在，无法更新');
+        throw const DatabaseFailure('番茄钟会话不存在，无法更新');
       }
     } catch (e) {
       throw DatabaseFailure('更新番茄钟会话失败: $e');
@@ -174,7 +174,7 @@ class PomodoroLocalDataSourceImpl implements PomodoroLocalDataSource {
       );
 
       if (count == 0) {
-        throw DatabaseFailure('番茄钟会话不存在，无法删除');
+        throw const DatabaseFailure('番茄钟会话不存在，无法删除');
       }
     } catch (e) {
       throw DatabaseFailure('删除番茄钟会话失败: $e');

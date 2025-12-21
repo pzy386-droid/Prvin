@@ -1,12 +1,9 @@
-import '../../../../core/cache/cache_manager.dart';
-import '../models/task_model.dart';
-import 'task_local_datasource.dart';
+import 'package:prvin/core/cache/cache_manager.dart';
+import 'package:prvin/features/tasks/data/datasources/task_local_datasource.dart';
+import 'package:prvin/features/tasks/data/models/task_model.dart';
 
 /// 带缓存的任务数据源装饰器
 class CachedTaskDataSource implements TaskLocalDataSource {
-  final TaskLocalDataSource _dataSource;
-  final CacheManager<String, TaskModel> _taskCache;
-  final CacheManager<String, List<TaskModel>> _listCache;
 
   CachedTaskDataSource(this._dataSource)
     : _taskCache = CacheManager<String, TaskModel>(
@@ -17,6 +14,9 @@ class CachedTaskDataSource implements TaskLocalDataSource {
         maxSize: 50,
         ttl: const Duration(minutes: 5),
       );
+  final TaskLocalDataSource _dataSource;
+  final CacheManager<String, TaskModel> _taskCache;
+  final CacheManager<String, List<TaskModel>> _listCache;
 
   @override
   Future<List<TaskModel>> getAllTasks() async {
@@ -158,7 +158,7 @@ class CachedTaskDataSource implements TaskLocalDataSource {
   @override
   Future<List<TaskModel>> searchTasks(String query) async {
     // 搜索不缓存，因为查询条件变化太多
-    return await _dataSource.searchTasks(query);
+    return _dataSource.searchTasks(query);
   }
 
   @override

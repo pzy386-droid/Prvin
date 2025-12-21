@@ -1,8 +1,9 @@
 import 'dart:convert';
+
+import 'package:prvin/core/database/database_helper.dart';
+import 'package:prvin/core/error/failures.dart';
+import 'package:prvin/features/sync/data/models/calendar_event_model.dart';
 import 'package:sqflite/sqflite.dart';
-import '../../../../core/database/database_helper.dart';
-import '../../../../core/error/failures.dart';
-import '../models/calendar_event_model.dart';
 
 /// 日历事件本地数据源接口
 abstract class CalendarEventLocalDataSource {
@@ -24,16 +25,16 @@ abstract class CalendarEventLocalDataSource {
 
 /// 日历事件本地数据源实现
 class CalendarEventLocalDataSourceImpl implements CalendarEventLocalDataSource {
-  final DatabaseHelper _databaseHelper;
 
   CalendarEventLocalDataSourceImpl(this._databaseHelper);
+  final DatabaseHelper _databaseHelper;
 
   @override
   Future<List<CalendarEventModel>> getAllEvents() async {
     try {
       final db = await _databaseHelper.database;
       final maps = await db.query('calendar_events', orderBy: 'start_time ASC');
-      return maps.map((map) => _mapToEventModel(map)).toList();
+      return maps.map(_mapToEventModel).toList();
     } catch (e) {
       throw DatabaseFailure('获取所有日历事件失败: $e');
     }
@@ -56,7 +57,7 @@ class CalendarEventLocalDataSourceImpl implements CalendarEventLocalDataSource {
         orderBy: 'start_time ASC',
       );
 
-      return maps.map((map) => _mapToEventModel(map)).toList();
+      return maps.map(_mapToEventModel).toList();
     } catch (e) {
       throw DatabaseFailure('获取指定日期日历事件失败: $e');
     }
@@ -72,7 +73,7 @@ class CalendarEventLocalDataSourceImpl implements CalendarEventLocalDataSource {
         whereArgs: [source.name],
         orderBy: 'start_time ASC',
       );
-      return maps.map((map) => _mapToEventModel(map)).toList();
+      return maps.map(_mapToEventModel).toList();
     } catch (e) {
       throw DatabaseFailure('按来源获取日历事件失败: $e');
     }
@@ -89,7 +90,7 @@ class CalendarEventLocalDataSourceImpl implements CalendarEventLocalDataSource {
         whereArgs: [EventSource.local.name],
         orderBy: 'updated_at DESC',
       );
-      return maps.map((map) => _mapToEventModel(map)).toList();
+      return maps.map(_mapToEventModel).toList();
     } catch (e) {
       throw DatabaseFailure('获取需要同步的日历事件失败: $e');
     }
@@ -163,7 +164,7 @@ class CalendarEventLocalDataSourceImpl implements CalendarEventLocalDataSource {
       );
 
       if (count == 0) {
-        throw DatabaseFailure('日历事件不存在，无法更新');
+        throw const DatabaseFailure('日历事件不存在，无法更新');
       }
     } catch (e) {
       throw DatabaseFailure('更新日历事件失败: $e');
@@ -181,7 +182,7 @@ class CalendarEventLocalDataSourceImpl implements CalendarEventLocalDataSource {
       );
 
       if (count == 0) {
-        throw DatabaseFailure('日历事件不存在，无法删除');
+        throw const DatabaseFailure('日历事件不存在，无法删除');
       }
     } catch (e) {
       throw DatabaseFailure('删除日历事件失败: $e');
@@ -200,7 +201,7 @@ class CalendarEventLocalDataSourceImpl implements CalendarEventLocalDataSource {
       );
 
       if (count == 0) {
-        throw DatabaseFailure('日历事件不存在，无法标记为已同步');
+        throw const DatabaseFailure('日历事件不存在，无法标记为已同步');
       }
     } catch (e) {
       throw DatabaseFailure('标记日历事件已同步失败: $e');
@@ -230,10 +231,10 @@ class CalendarEventLocalDataSourceImpl implements CalendarEventLocalDataSource {
       isAllDay: (map['is_all_day'] as int) == 1,
       location: map['location'] as String?,
       attendees: List<String>.from(
-        (jsonDecode(map['attendees'] as String) as List<dynamic>),
+        jsonDecode(map['attendees'] as String) as List<dynamic>,
       ),
       reminders: List<int>.from(
-        (jsonDecode(map['reminders'] as String) as List<dynamic>),
+        jsonDecode(map['reminders'] as String) as List<dynamic>,
       ),
       recurrenceRule: map['recurrence_rule'] as String?,
       metadata: Map<String, dynamic>.from(

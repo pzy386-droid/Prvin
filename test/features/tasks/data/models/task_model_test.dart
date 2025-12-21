@@ -10,14 +10,14 @@ void main() {
         id: 'test-id',
         title: 'Test Task',
         description: 'Test Description',
-        startTime: DateTime(2024, 1, 1, 9, 0),
-        endTime: DateTime(2024, 1, 1, 10, 0),
-        tags: ['work', 'important'],
+        startTime: DateTime(2024, 1, 1, 9),
+        endTime: DateTime(2024, 1, 1, 10),
+        tags: const ['work', 'important'],
         priority: TaskPriority.high,
         status: TaskStatus.pending,
         category: TaskCategory.work,
-        createdAt: DateTime(2024, 1, 1, 8, 0),
-        updatedAt: DateTime(2024, 1, 1, 8, 0),
+        createdAt: DateTime(2024, 1, 1, 8),
+        updatedAt: DateTime(2024, 1, 1, 8),
       );
     });
 
@@ -38,12 +38,12 @@ void main() {
         title: 'Conflicting Task',
         startTime: DateTime(2024, 1, 1, 9, 30),
         endTime: DateTime(2024, 1, 1, 10, 30),
-        tags: [],
+        tags: const [],
         priority: TaskPriority.medium,
         status: TaskStatus.pending,
         category: TaskCategory.personal,
-        createdAt: DateTime(2024, 1, 1, 8, 0),
-        updatedAt: DateTime(2024, 1, 1, 8, 0),
+        createdAt: DateTime(2024, 1, 1, 8),
+        updatedAt: DateTime(2024, 1, 1, 8),
       );
 
       expect(testTask.hasTimeConflict(conflictingTask), isTrue);
@@ -60,14 +60,14 @@ void main() {
       final invalidTask = TaskModel(
         id: 'invalid-id',
         title: '', // Empty title
-        startTime: DateTime(2024, 1, 1, 10, 0),
-        endTime: DateTime(2024, 1, 1, 9, 0), // End before start
-        tags: [],
+        startTime: DateTime(2024, 1, 1, 10),
+        endTime: DateTime(2024, 1, 1, 9), // End before start
+        tags: const [],
         priority: TaskPriority.medium,
         status: TaskStatus.pending,
         category: TaskCategory.personal,
-        createdAt: DateTime(2024, 1, 1, 8, 0),
-        updatedAt: DateTime(2024, 1, 1, 8, 0),
+        createdAt: DateTime(2024, 1, 1, 8),
+        updatedAt: DateTime(2024, 1, 1, 8),
       );
 
       expect(invalidTask.isValid(), isFalse);

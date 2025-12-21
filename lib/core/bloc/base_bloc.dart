@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../error/failures.dart';
+import 'package:prvin/core/error/failures.dart';
 
 /// 基础状态类，所有BLoC状态都应该继承此类
 abstract class BaseState extends Equatable {

@@ -1,8 +1,9 @@
 import 'dart:convert';
+
+import 'package:prvin/core/database/database_helper.dart';
+import 'package:prvin/core/error/failures.dart';
+import 'package:prvin/features/tasks/data/models/task_model.dart';
 import 'package:sqflite/sqflite.dart';
-import '../../../../core/database/database_helper.dart';
-import '../../../../core/error/failures.dart';
-import '../models/task_model.dart';
 
 /// 任务本地数据源接口
 abstract class TaskLocalDataSource {
@@ -20,16 +21,16 @@ abstract class TaskLocalDataSource {
 
 /// 任务本地数据源实现
 class TaskLocalDataSourceImpl implements TaskLocalDataSource {
-  final DatabaseHelper _databaseHelper;
 
   TaskLocalDataSourceImpl(this._databaseHelper);
+  final DatabaseHelper _databaseHelper;
 
   @override
   Future<List<TaskModel>> getAllTasks() async {
     try {
       final db = await _databaseHelper.database;
       final maps = await db.query('tasks', orderBy: 'created_at DESC');
-      return maps.map((map) => _mapToTaskModel(map)).toList();
+      return maps.map(_mapToTaskModel).toList();
     } catch (e) {
       throw DatabaseFailure('获取所有任务失败: $e');
     }
@@ -52,7 +53,7 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
         orderBy: 'start_time ASC',
       );
 
-      return maps.map((map) => _mapToTaskModel(map)).toList();
+      return maps.map(_mapToTaskModel).toList();
     } catch (e) {
       throw DatabaseFailure('获取指定日期任务失败: $e');
     }
@@ -68,7 +69,7 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
         whereArgs: [status.name],
         orderBy: 'created_at DESC',
       );
-      return maps.map((map) => _mapToTaskModel(map)).toList();
+      return maps.map(_mapToTaskModel).toList();
     } catch (e) {
       throw DatabaseFailure('按状态获取任务失败: $e');
     }
@@ -84,7 +85,7 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
         whereArgs: [category.name],
         orderBy: 'created_at DESC',
       );
-      return maps.map((map) => _mapToTaskModel(map)).toList();
+      return maps.map(_mapToTaskModel).toList();
     } catch (e) {
       throw DatabaseFailure('按分类获取任务失败: $e');
     }
@@ -137,7 +138,7 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
       );
 
       if (count == 0) {
-        throw DatabaseFailure('任务不存在，无法更新');
+        throw const DatabaseFailure('任务不存在，无法更新');
       }
     } catch (e) {
       throw DatabaseFailure('更新任务失败: $e');
@@ -151,7 +152,7 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
       final count = await db.delete('tasks', where: 'id = ?', whereArgs: [id]);
 
       if (count == 0) {
-        throw DatabaseFailure('任务不存在，无法删除');
+        throw const DatabaseFailure('任务不存在，无法删除');
       }
     } catch (e) {
       throw DatabaseFailure('删除任务失败: $e');
@@ -168,7 +169,7 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
         whereArgs: ['%$query%', '%$query%'],
         orderBy: 'created_at DESC',
       );
-      return maps.map((map) => _mapToTaskModel(map)).toList();
+      return maps.map(_mapToTaskModel).toList();
     } catch (e) {
       throw DatabaseFailure('搜索任务失败: $e');
     }

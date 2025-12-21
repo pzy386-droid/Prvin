@@ -6,9 +6,7 @@ class TaskCreateRequest extends Equatable {
 
   const TaskCreateRequest({
     required this.title,
-    this.description,
-    required this.startTime,
-    required this.endTime,
+    required this.startTime, required this.endTime, this.description,
     this.tags = const [],
     this.priority = TaskPriority.medium,
     this.category = TaskCategory.personal,

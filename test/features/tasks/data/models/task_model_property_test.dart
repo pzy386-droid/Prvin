@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:faker/faker.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:prvin/features/tasks/data/models/task_model.dart';
 
 void main() {
@@ -10,7 +10,7 @@ void main() {
     /// 对于任何新创建的任务，应该支持设置开始时间、结束时间、标签和优先级属性
     test('Property 4: Task attribute completeness', () {
       // 运行100次迭代以确保属性测试的充分性
-      for (int i = 0; i < 100; i++) {
+      for (var i = 0; i < 100; i++) {
         // 生成随机任务数据
         final startTime = faker.date.dateTime(minYear: 2024, maxYear: 2025);
         final endTime = startTime.add(
@@ -89,7 +89,7 @@ void main() {
 
     test('Property: Task serialization round trip', () {
       // 运行100次迭代测试序列化往返
-      for (int i = 0; i < 100; i++) {
+      for (var i = 0; i < 100; i++) {
         final startTime = faker.date.dateTime(minYear: 2024, maxYear: 2025);
         final endTime = startTime.add(
           Duration(hours: faker.randomGenerator.integer(8, min: 1)),
@@ -134,7 +134,7 @@ void main() {
 
     test('Property: Task validation consistency', () {
       // 运行100次迭代测试验证逻辑一致性
-      for (int i = 0; i < 100; i++) {
+      for (var i = 0; i < 100; i++) {
         final startTime = faker.date.dateTime(minYear: 2024, maxYear: 2025);
 
         // 随机决定是否创建有效任务
@@ -145,14 +145,14 @@ void main() {
           title: isValidTask ? faker.lorem.sentence() : '', // 无效任务使用空标题
           startTime: startTime,
           endTime: isValidTask
-              ? startTime.add(Duration(hours: 1))
-              : startTime.subtract(Duration(hours: 1)), // 无效任务结束时间早于开始时间
-          tags: [],
+              ? startTime.add(const Duration(hours: 1))
+              : startTime.subtract(const Duration(hours: 1)), // 无效任务结束时间早于开始时间
+          tags: const [],
           priority: TaskPriority.medium,
           status: TaskStatus.pending,
           category: TaskCategory.personal,
-          createdAt: startTime.subtract(Duration(hours: 2)),
-          updatedAt: startTime.subtract(Duration(hours: 1)),
+          createdAt: startTime.subtract(const Duration(hours: 2)),
+          updatedAt: startTime.subtract(const Duration(hours: 1)),
         );
 
         // 验证isValid()方法的一致性

@@ -1,8 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:faker/faker.dart';
-import 'package:prvin/features/tasks/data/models/task_model.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:prvin/features/pomodoro/data/models/pomodoro_session_model.dart';
 import 'package:prvin/features/sync/data/models/calendar_event_model.dart';
+import 'package:prvin/features/tasks/data/models/task_model.dart';
 
 void main() {
   group('Data Models Integration Tests', () {
@@ -15,7 +15,7 @@ void main() {
         title: faker.lorem.sentence(),
         startTime: DateTime.now(),
         endTime: DateTime.now().add(const Duration(hours: 1)),
-        tags: ['test'],
+        tags: const ['test'],
         priority: TaskPriority.high,
         status: TaskStatus.pending,
         category: TaskCategory.work,
@@ -50,9 +50,9 @@ void main() {
         endTime: DateTime.now().add(const Duration(hours: 1)),
         source: EventSource.local,
         isAllDay: false,
-        attendees: [],
-        reminders: [15],
-        metadata: {},
+        attendees: const [],
+        reminders: const [15],
+        metadata: const {},
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -69,7 +69,7 @@ void main() {
         title: 'Valid Task',
         startTime: DateTime.now(),
         endTime: DateTime.now().add(const Duration(hours: 1)),
-        tags: [],
+        tags: const [],
         priority: TaskPriority.medium,
         status: TaskStatus.pending,
         category: TaskCategory.personal,
@@ -100,9 +100,9 @@ void main() {
         endTime: DateTime.now().add(const Duration(hours: 1)),
         source: EventSource.local,
         isAllDay: false,
-        attendees: [],
-        reminders: [],
-        metadata: {},
+        attendees: const [],
+        reminders: const [],
+        metadata: const {},
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -116,7 +116,7 @@ void main() {
         title: 'Test Task',
         startTime: DateTime.now(),
         endTime: DateTime.now().add(const Duration(hours: 1)),
-        tags: [], // 空标签列表
+        tags: const [], // 空标签列表
         priority: TaskPriority.medium,
         status: TaskStatus.pending,
         category: TaskCategory.personal,
@@ -130,13 +130,13 @@ void main() {
       final allDayEvent = CalendarEventModel(
         id: 'all-day-event',
         title: 'All Day Event',
-        startTime: DateTime(2024, 1, 1),
+        startTime: DateTime(2024),
         endTime: DateTime(2024, 1, 2),
         source: EventSource.local,
         isAllDay: true, // 全天事件
-        attendees: [],
-        reminders: [],
-        metadata: {},
+        attendees: const [],
+        reminders: const [],
+        metadata: const {},
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -147,7 +147,6 @@ void main() {
       final incompleteSession = PomodoroSessionModel(
         id: 'incomplete-session',
         startTime: DateTime.now(),
-        endTime: null, // 未结束
         plannedDuration: const Duration(minutes: 25),
         actualDuration: const Duration(minutes: 10),
         type: SessionType.work,

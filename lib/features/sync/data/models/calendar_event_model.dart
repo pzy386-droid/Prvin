@@ -21,19 +21,10 @@ class CalendarEventModel extends Equatable {
   const CalendarEventModel({
     required this.id,
     required this.title,
-    this.description,
-    required this.startTime,
-    required this.endTime,
-    required this.source,
+    required this.startTime, required this.endTime, required this.source, required this.isAllDay, required this.attendees, required this.reminders, required this.metadata, required this.createdAt, required this.updatedAt, this.description,
     this.externalId,
-    required this.isAllDay,
     this.location,
-    required this.attendees,
-    required this.reminders,
     this.recurrenceRule,
-    required this.metadata,
-    required this.createdAt,
-    required this.updatedAt,
     this.lastSyncAt,
   });
 

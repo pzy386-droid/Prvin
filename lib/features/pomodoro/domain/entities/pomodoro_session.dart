@@ -18,13 +18,8 @@ class PomodoroSession extends Equatable {
   const PomodoroSession({
     required this.id,
     required this.startTime,
-    this.endTime,
-    required this.plannedDuration,
-    required this.actualDuration,
-    required this.type,
+    required this.plannedDuration, required this.actualDuration, required this.type, required this.completed, required this.createdAt, this.endTime,
     this.associatedTaskId,
-    required this.completed,
-    required this.createdAt,
   });
 
   /// 会话ID

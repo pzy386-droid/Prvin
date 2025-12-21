@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/app_bloc.dart';
+import 'package:prvin/core/bloc/app_bloc.dart';
 
 /// Context扩展，提供便捷的BLoC访问方法
 extension ContextExtensions on BuildContext {

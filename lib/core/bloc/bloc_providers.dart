@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../services/injection_container.dart' as di;
-import 'app_bloc.dart';
+import 'package:prvin/core/bloc/app_bloc.dart';
+import 'package:prvin/core/services/injection_container.dart' as di;
 
 /// 应用级BLoC提供者
 class AppBlocProviders extends StatelessWidget {
-  const AppBlocProviders({super.key, required this.child});
+  const AppBlocProviders({required this.child, super.key});
 
   final Widget child;
 
@@ -28,7 +28,7 @@ class AppBlocProviders extends StatelessWidget {
 
 /// BLoC监听器组合
 class AppBlocListeners extends StatelessWidget {
-  const AppBlocListeners({super.key, required this.child});
+  const AppBlocListeners({required this.child, super.key});
 
   final Widget child;
 

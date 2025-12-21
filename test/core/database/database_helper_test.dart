@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:prvin/core/database/database_helper.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   group('DatabaseHelper', () {
@@ -72,7 +72,7 @@ void main() {
         'title': 'Test Task',
         'start_time': DateTime.now().millisecondsSinceEpoch,
         'end_time': DateTime.now()
-            .add(Duration(hours: 1))
+            .add(const Duration(hours: 1))
             .millisecondsSinceEpoch,
         'tags': '[]',
         'priority': 'medium',

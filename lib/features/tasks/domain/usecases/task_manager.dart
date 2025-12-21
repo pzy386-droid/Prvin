@@ -1,24 +1,22 @@
 import 'package:dartz/dartz.dart';
 import 'package:my_first_app/core/error/failures.dart';
-import '../entities/task.dart';
-import '../repositories/task_repository.dart';
+import 'package:prvin/features/tasks/domain/entities/task.dart';
+import 'package:prvin/features/tasks/domain/repositories/task_repository.dart';
 
 /// 任务管理器用例
 ///
 /// 封装任务相关的业务逻辑，提供高级的任务操作功能
 class TaskManager {
-  final TaskRepository _repository;
 
   const TaskManager(this._repository);
+  final TaskRepository _repository;
 
   /// 创建新任务
   ///
   /// 在创建前会检查时间冲突和数据有效性
   Future<Either<Failure, String>> createTask({
     required String title,
-    String? description,
-    required DateTime startTime,
-    required DateTime endTime,
+    required DateTime startTime, required DateTime endTime, String? description,
     List<String> tags = const [],
     TaskPriority priority = TaskPriority.medium,
     TaskCategory category = TaskCategory.personal,
@@ -40,7 +38,7 @@ class TaskManager {
       endTime,
     );
 
-    return conflictsResult.fold((failure) => Left(failure), (conflicts) {
+    return conflictsResult.fold(Left.new, (conflicts) {
       if (conflicts.isNotEmpty) {
         return Left(ValidationFailure('时间冲突：与 ${conflicts.length} 个任务时间重叠'));
       }
@@ -84,7 +82,7 @@ class TaskManager {
     // 获取现有任务
     final taskResult = await _repository.getTaskById(taskId);
 
-    return taskResult.fold((failure) => Left(failure), (existingTask) {
+    return taskResult.fold(Left.new, (existingTask) {
       if (existingTask == null) {
         return Left(NotFoundFailure('任务不存在'));
       }
@@ -152,7 +150,7 @@ class TaskManager {
   Future<Either<Failure, List<Task>>> getUpcomingTasks() async {
     final allTasksResult = await _repository.getAllTasks();
 
-    return allTasksResult.fold((failure) => Left(failure), (allTasks) {
+    return allTasksResult.fold(Left.new, (allTasks) {
       final now = DateTime.now();
       final nextWeek = now.add(const Duration(days: 7));
 
@@ -173,7 +171,7 @@ class TaskManager {
   Future<Either<Failure, List<Task>>> getOverdueTasks() async {
     final allTasksResult = await _repository.getAllTasks();
 
-    return allTasksResult.fold((failure) => Left(failure), (allTasks) {
+    return allTasksResult.fold(Left.new, (allTasks) {
       final overdueTasks = allTasks.where((task) => task.isOverdue).toList();
 
       // 按结束时间排序（最早过期的在前）
@@ -223,7 +221,7 @@ class TaskManager {
       excludeTaskId: task.id,
     );
 
-    return conflictsResult.fold((failure) => Left(failure), (conflicts) {
+    return conflictsResult.fold(Left.new, (conflicts) {
       if (conflicts.isNotEmpty) {
         return Left(ValidationFailure('时间冲突：与 ${conflicts.length} 个任务时间重叠'));
       }
@@ -273,7 +271,7 @@ class TaskManager {
     final random = DateTime.now().millisecondsSinceEpoch;
     var result = '';
 
-    for (int i = 0; i < length; i++) {
+    for (var i = 0; i < length; i++) {
       result += chars[(random + i) % chars.length];
     }
 

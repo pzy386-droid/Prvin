@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
-import '../../../tasks/data/models/task_model.dart';
+import 'package:prvin/features/tasks/data/models/task_model.dart';
 
 part 'analytics_data_model.g.dart';
 
@@ -264,8 +264,9 @@ class AnalyticsDataModel extends Equatable {
 
     // 生成时间应该在周期结束时间之后或同一天
     // 允许一定的时间容差
-    if (generatedAt.isBefore(period.endDate.subtract(const Duration(hours: 1))))
+    if (generatedAt.isBefore(period.endDate.subtract(const Duration(hours: 1)))) {
       return false;
+    }
 
     return true;
   }

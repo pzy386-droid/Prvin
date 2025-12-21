@@ -1,4 +1,4 @@
-import '../entities/pomodoro_session.dart';
+import 'package:prvin/features/pomodoro/domain/entities/pomodoro_session.dart';
 
 /// 番茄钟仓库接口
 abstract class PomodoroRepository {

@@ -20,13 +20,8 @@ class PomodoroSessionModel extends Equatable {
   const PomodoroSessionModel({
     required this.id,
     required this.startTime,
-    this.endTime,
-    required this.plannedDuration,
-    required this.actualDuration,
-    required this.type,
+    required this.plannedDuration, required this.actualDuration, required this.type, required this.completed, required this.createdAt, this.endTime,
     this.associatedTaskId,
-    required this.completed,
-    required this.createdAt,
   });
 
   /// 从JSON创建PomodoroSessionModel

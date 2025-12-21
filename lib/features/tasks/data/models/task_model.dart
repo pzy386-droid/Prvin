@@ -48,15 +48,7 @@ class TaskModel extends Equatable {
   const TaskModel({
     required this.id,
     required this.title,
-    this.description,
-    required this.startTime,
-    required this.endTime,
-    required this.tags,
-    required this.priority,
-    required this.status,
-    required this.category,
-    required this.createdAt,
-    required this.updatedAt,
+    required this.startTime, required this.endTime, required this.tags, required this.priority, required this.status, required this.category, required this.createdAt, required this.updatedAt, this.description,
   });
 
   /// 从JSON创建TaskModel

@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:prvin/core/bloc/app_bloc.dart';
 
 void main() {
@@ -29,7 +29,7 @@ void main() {
     blocTest<AppBloc, AppState>(
       'emits updated AppReadyState when AppThemeChangedEvent is added',
       build: () => appBloc,
-      seed: () => const AppReadyState(isDarkMode: false),
+      seed: () => const AppReadyState(),
       act: (bloc) => bloc.add(const AppThemeChangedEvent(true)),
       expect: () => [const AppReadyState(isDarkMode: true)],
     );
@@ -37,15 +37,14 @@ void main() {
     blocTest<AppBloc, AppState>(
       'emits updated AppReadyState when AppLanguageChangedEvent is added',
       build: () => appBloc,
-      seed: () => const AppReadyState(languageCode: 'zh'),
+      seed: () => const AppReadyState(),
       act: (bloc) => bloc.add(const AppLanguageChangedEvent('en')),
       expect: () => [const AppReadyState(languageCode: 'en')],
     );
 
     test('AppReadyState copyWith works correctly', () {
       const originalState = AppReadyState(
-        isDarkMode: false,
-        languageCode: 'zh',
+        
       );
 
       final updatedState = originalState.copyWith(isDarkMode: true);

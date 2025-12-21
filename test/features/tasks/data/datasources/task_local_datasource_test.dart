@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:uuid/uuid.dart';
 import 'package:prvin/core/database/database_helper.dart';
 import 'package:prvin/features/tasks/data/datasources/task_local_datasource.dart';
 import 'package:prvin/features/tasks/data/models/task_model.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
   group('TaskLocalDataSource', () {
@@ -27,14 +27,14 @@ void main() {
         id: const Uuid().v4(),
         title: 'Test Task',
         description: 'Test Description',
-        startTime: DateTime(2024, 1, 1, 9, 0),
-        endTime: DateTime(2024, 1, 1, 10, 0),
-        tags: ['test', 'work'],
+        startTime: DateTime(2024, 1, 1, 9),
+        endTime: DateTime(2024, 1, 1, 10),
+        tags: const ['test', 'work'],
         priority: TaskPriority.high,
         status: TaskStatus.pending,
         category: TaskCategory.work,
-        createdAt: DateTime(2024, 1, 1, 8, 0),
-        updatedAt: DateTime(2024, 1, 1, 8, 0),
+        createdAt: DateTime(2024, 1, 1, 8),
+        updatedAt: DateTime(2024, 1, 1, 8),
       );
     });
 
@@ -95,8 +95,8 @@ void main() {
       final task1 = testTask;
       final task2 = testTask.copyWith(
         id: const Uuid().v4(),
-        startTime: DateTime(2024, 1, 2, 9, 0),
-        endTime: DateTime(2024, 1, 2, 10, 0),
+        startTime: DateTime(2024, 1, 2, 9),
+        endTime: DateTime(2024, 1, 2, 10),
       );
 
       await dataSource.createTask(task1);
@@ -104,7 +104,7 @@ void main() {
 
       // 获取特定日期的任务
       final tasksForDate1 = await dataSource.getTasksForDate(
-        DateTime(2024, 1, 1),
+        DateTime(2024),
       );
       final tasksForDate2 = await dataSource.getTasksForDate(
         DateTime(2024, 1, 2),
@@ -171,7 +171,7 @@ void main() {
       );
       expect(
         searchResults.any(
-          (task) => task.description?.contains('important') == true,
+          (task) => task.description?.contains('important') ?? false,
         ),
         isTrue,
       );
@@ -179,14 +179,14 @@ void main() {
 
     test('should get all tasks ordered by creation date', () async {
       // 创建多个任务
-      final task1 = testTask.copyWith(createdAt: DateTime(2024, 1, 1, 8, 0));
+      final task1 = testTask.copyWith(createdAt: DateTime(2024, 1, 1, 8));
       final task2 = testTask.copyWith(
         id: const Uuid().v4(),
-        createdAt: DateTime(2024, 1, 1, 9, 0),
+        createdAt: DateTime(2024, 1, 1, 9),
       );
       final task3 = testTask.copyWith(
         id: const Uuid().v4(),
-        createdAt: DateTime(2024, 1, 1, 10, 0),
+        createdAt: DateTime(2024, 1, 1, 10),
       );
 
       await dataSource.createTask(task1);

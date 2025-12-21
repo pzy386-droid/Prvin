@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:my_first_app/core/error/failures.dart';
-import '../entities/task.dart';
+import 'package:prvin/features/tasks/domain/entities/task.dart';
 
 /// 任务仓库接口
 ///
@@ -58,6 +58,16 @@ abstract class TaskRepository {
 
 /// 任务统计信息
 class TaskStatistics {
+
+  const TaskStatistics({
+    required this.totalTasks,
+    required this.completedTasks,
+    required this.inProgressTasks,
+    required this.todoTasks,
+    required this.cancelledTasks,
+    required this.tasksByCategory,
+    required this.tasksByPriority,
+  });
   /// 总任务数
   final int totalTasks;
 
@@ -81,17 +91,7 @@ class TaskStatistics {
 
   /// 完成率
   double get completionRate {
-    if (totalTasks == 0) return 0.0;
+    if (totalTasks == 0) return 0;
     return completedTasks / totalTasks;
   }
-
-  const TaskStatistics({
-    required this.totalTasks,
-    required this.completedTasks,
-    required this.inProgressTasks,
-    required this.todoTasks,
-    required this.cancelledTasks,
-    required this.tasksByCategory,
-    required this.tasksByPriority,
-  });
 }

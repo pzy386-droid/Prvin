@@ -3,10 +3,6 @@ import 'dart:collection';
 
 /// 缓存管理器，提供内存缓存功能以优化数据访问性能
 class CacheManager<K, V> {
-  final int _maxSize;
-  final Duration _ttl;
-  final LinkedHashMap<K, _CacheEntry<V>> _cache = LinkedHashMap();
-  Timer? _cleanupTimer;
 
   CacheManager({int maxSize = 100, Duration ttl = const Duration(minutes: 30)})
     : _maxSize = maxSize,
@@ -17,6 +13,10 @@ class CacheManager<K, V> {
       (_) => _cleanupExpired(),
     );
   }
+  final int _maxSize;
+  final Duration _ttl;
+  final LinkedHashMap<K, _CacheEntry<V>> _cache = LinkedHashMap();
+  Timer? _cleanupTimer;
 
   /// 获取缓存值
   V? get(K key) {
@@ -88,8 +88,8 @@ class CacheManager<K, V> {
 
   /// 获取缓存统计信息
   CacheStats get stats {
-    int expiredCount = 0;
-    int validCount = 0;
+    var expiredCount = 0;
+    var validCount = 0;
 
     for (final entry in _cache.values) {
       if (_isExpired(entry)) {
@@ -137,24 +137,19 @@ class CacheManager<K, V> {
 
 /// 缓存条目
 class _CacheEntry<V> {
-  final V value;
-  final DateTime createdAt;
-  DateTime lastAccessed;
 
   _CacheEntry({
     required this.value,
     required this.createdAt,
     required this.lastAccessed,
   });
+  final V value;
+  final DateTime createdAt;
+  DateTime lastAccessed;
 }
 
 /// 缓存统计信息
 class CacheStats {
-  final int totalEntries;
-  final int validEntries;
-  final int expiredEntries;
-  final int maxSize;
-  final Duration ttl;
 
   const CacheStats({
     required this.totalEntries,
@@ -163,10 +158,15 @@ class CacheStats {
     required this.maxSize,
     required this.ttl,
   });
+  final int totalEntries;
+  final int validEntries;
+  final int expiredEntries;
+  final int maxSize;
+  final Duration ttl;
 
   /// 缓存命中率
   double get hitRate {
-    if (totalEntries == 0) return 0.0;
+    if (totalEntries == 0) return 0;
     return validEntries / totalEntries;
   }
 

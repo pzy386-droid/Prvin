@@ -2,16 +2,16 @@ import 'package:dartz/dartz.dart';
 import 'package:my_first_app/core/error/failures.dart';
 import 'package:my_first_app/features/tasks/domain/entities/task.dart';
 import 'package:my_first_app/features/tasks/domain/repositories/task_repository.dart';
-import '../datasources/task_local_datasource.dart';
-import '../models/task_model.dart';
+import 'package:prvin/features/tasks/data/datasources/task_local_datasource.dart';
+import 'package:prvin/features/tasks/data/models/task_model.dart';
 
 /// 任务仓库实现
 ///
 /// 协调本地数据源和缓存，处理数据转换和错误处理
 class TaskRepositoryImpl implements TaskRepository {
-  final TaskLocalDataSource _localDataSource;
 
   const TaskRepositoryImpl(this._localDataSource);
+  final TaskLocalDataSource _localDataSource;
 
   @override
   Future<Either<Failure, List<Task>>> getAllTasks() async {
@@ -342,16 +342,12 @@ class TaskRepositoryImpl implements TaskRepository {
       switch (task.status) {
         case TaskStatus.completed:
           completedTasks++;
-          break;
         case TaskStatus.inProgress:
           inProgressTasks++;
-          break;
         case TaskStatus.pending:
           todoTasks++;
-          break;
         case TaskStatus.cancelled:
           cancelledTasks++;
-          break;
       }
 
       // 统计分类

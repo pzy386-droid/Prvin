@@ -13,6 +13,12 @@ enum TaskCategory { work, personal, health, learning, social }
 ///
 /// 表示业务领域中的任务概念，不依赖于具体的数据存储实现
 class Task extends Equatable {
+
+  const Task({
+    required this.id,
+    required this.title,
+    required this.startTime, required this.endTime, required this.tags, required this.priority, required this.status, required this.category, required this.createdAt, required this.updatedAt, this.description,
+  });
   /// 任务ID
   final String id;
 
@@ -45,20 +51,6 @@ class Task extends Equatable {
 
   /// 更新时间
   final DateTime updatedAt;
-
-  const Task({
-    required this.id,
-    required this.title,
-    this.description,
-    required this.startTime,
-    required this.endTime,
-    required this.tags,
-    required this.priority,
-    required this.status,
-    required this.category,
-    required this.createdAt,
-    required this.updatedAt,
-  });
 
   /// 获取任务持续时间
   Duration get duration => endTime.difference(startTime);
@@ -96,12 +88,12 @@ class Task extends Equatable {
 
   /// 获取任务进度百分比（基于时间）
   double get progressPercentage {
-    if (status == TaskStatus.completed) return 1.0;
-    if (status == TaskStatus.cancelled) return 0.0;
+    if (status == TaskStatus.completed) return 1;
+    if (status == TaskStatus.cancelled) return 0;
 
     final now = DateTime.now();
-    if (now.isBefore(startTime)) return 0.0;
-    if (now.isAfter(endTime)) return 1.0;
+    if (now.isBefore(startTime)) return 0;
+    if (now.isAfter(endTime)) return 1;
 
     final totalDuration = endTime.difference(startTime).inMilliseconds;
     final elapsedDuration = now.difference(startTime).inMilliseconds;
