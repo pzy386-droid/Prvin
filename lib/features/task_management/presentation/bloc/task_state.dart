@@ -15,6 +15,9 @@ class TaskState extends Equatable {
     this.conflicts = const [],
     this.errorMessage,
     this.message,
+    this.aiSuggestions,
+    this.optimizationSuggestions = const [],
+    this.isLoadingAISuggestions = false,
   });
 
   final TaskBlocStatus status;
@@ -26,6 +29,9 @@ class TaskState extends Equatable {
   final List<ConflictWarning> conflicts;
   final String? errorMessage;
   final String? message;
+  final TaskSuggestion? aiSuggestions;
+  final List<TaskOptimizationSuggestion> optimizationSuggestions;
+  final bool isLoadingAISuggestions;
 
   /// 是否正在加载
   bool get isLoading => status == TaskBlocStatus.loading;
@@ -75,6 +81,9 @@ class TaskState extends Equatable {
     List<ConflictWarning>? conflicts,
     String? errorMessage,
     String? message,
+    TaskSuggestion? aiSuggestions,
+    List<TaskOptimizationSuggestion>? optimizationSuggestions,
+    bool? isLoadingAISuggestions,
   }) {
     return TaskState(
       status: status ?? this.status,
@@ -86,6 +95,11 @@ class TaskState extends Equatable {
       conflicts: conflicts ?? this.conflicts,
       errorMessage: errorMessage,
       message: message,
+      aiSuggestions: aiSuggestions ?? this.aiSuggestions,
+      optimizationSuggestions:
+          optimizationSuggestions ?? this.optimizationSuggestions,
+      isLoadingAISuggestions:
+          isLoadingAISuggestions ?? this.isLoadingAISuggestions,
     );
   }
 
@@ -100,5 +114,8 @@ class TaskState extends Equatable {
     conflicts,
     errorMessage,
     message,
+    aiSuggestions,
+    optimizationSuggestions,
+    isLoadingAISuggestions,
   ];
 }

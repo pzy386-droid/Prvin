@@ -2,6 +2,8 @@
 /// 提供应用中所有主题相关组件的统一访问入口
 library;
 
+// 可访问性主题
+export 'accessibility_theme.dart';
 // 动画主题
 export 'animation_theme.dart';
 // 核心主题

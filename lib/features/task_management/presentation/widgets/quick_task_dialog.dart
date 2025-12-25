@@ -505,7 +505,6 @@ class _QuickTaskDialogState extends State<QuickTaskDialog>
       endTime: _endTime!,
       priority: _priority,
       category: _category,
-      tags: const [],
     );
 
     context.read<TaskBloc>().add(TaskCreateRequested(request));

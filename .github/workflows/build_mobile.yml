@@ -1,0 +1,328 @@
+name: 📱 构建移动端
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      build_android:
+        description: '构建Android版本'
+        required: true
+        default: true
+        type: boolean
+      build_ios:
+        description: '构建iOS版本'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  # Android构建
+  build-android:
+    name: 🤖 构建Android
+    runs-on: ubuntu-latest
+    if: github.event.inputs.build_android == 'true' || github.event_name == 'push'
+    
+    steps:
+    - name: 📥 检出代码
+      uses: actions/checkout@v4
+      
+    - name: ☕ 设置Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        
+    - name: 🐦 设置Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.10.4'
+        channel: 'stable'
+        
+    - name: 📦 获取依赖
+      run: flutter pub get
+      
+    - name: 🧪 运行测试
+      run: flutter test
+      
+    - name: 🔨 构建APK (Release)
+      run: flutter build apk --release
+      
+    - name: 🔨 构建App Bundle (Release)
+      run: flutter build appbundle --release
+      
+    - name: 📝 生成构建信息
+      run: |
+        mkdir -p build/android-release
+        
+        # 复制构建产物
+        cp build/app/outputs/flutter-apk/app-release.apk build/android-release/prvin-android.apk
+        cp build/app/outputs/bundle/release/app-release.aab build/android-release/prvin-android.aab
+        
+        # 生成构建信息
+        echo "# Prvin AI智能日历 - Android版本" > build/android-release/BUILD_INFO.md
+        echo "" >> build/android-release/BUILD_INFO.md
+        echo "## 构建信息" >> build/android-release/BUILD_INFO.md
+        echo "- **构建时间**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> build/android-release/BUILD_INFO.md
+        echo "- **Git提交**: ${{ github.sha }}" >> build/android-release/BUILD_INFO.md
+        echo "- **Git分支**: ${{ github.ref_name }}" >> build/android-release/BUILD_INFO.md
+        echo "- **Flutter版本**: $(flutter --version | head -n 1)" >> build/android-release/BUILD_INFO.md
+        echo "- **构建环境**: GitHub Actions" >> build/android-release/BUILD_INFO.md
+        echo "" >> build/android-release/BUILD_INFO.md
+        echo "## 安装说明" >> build/android-release/BUILD_INFO.md
+        echo "### APK安装" >> build/android-release/BUILD_INFO.md
+        echo "1. 下载 \`prvin-android.apk\` 文件" >> build/android-release/BUILD_INFO.md
+        echo "2. 在Android设备上启用\"未知来源\"安装" >> build/android-release/BUILD_INFO.md
+        echo "3. 打开APK文件进行安装" >> build/android-release/BUILD_INFO.md
+        echo "" >> build/android-release/BUILD_INFO.md
+        echo "### 系统要求" >> build/android-release/BUILD_INFO.md
+        echo "- **Android版本**: 5.0 (API 21) 或更高版本" >> build/android-release/BUILD_INFO.md
+        echo "- **存储空间**: 至少50MB可用空间" >> build/android-release/BUILD_INFO.md
+        echo "- **网络**: 可选，离线模式下部分功能受限" >> build/android-release/BUILD_INFO.md
+        
+        # 获取APK信息
+        APK_SIZE=$(du -h build/android-release/prvin-android.apk | cut -f1)
+        AAB_SIZE=$(du -h build/android-release/prvin-android.aab | cut -f1)
+        
+        echo "" >> build/android-release/BUILD_INFO.md
+        echo "## 文件信息" >> build/android-release/BUILD_INFO.md
+        echo "- **APK大小**: $APK_SIZE" >> build/android-release/BUILD_INFO.md
+        echo "- **AAB大小**: $AAB_SIZE" >> build/android-release/BUILD_INFO.md
+        
+    - name: 📤 上传Android构建产物
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-release
+        path: build/android-release
+        retention-days: 90
+
+  # iOS构建 (仅在macOS上运行)
+  build-ios:
+    name: 🍎 构建iOS
+    runs-on: macos-latest
+    if: github.event.inputs.build_ios == 'true' || (github.event_name == 'push' && contains(github.ref, 'refs/tags/'))
+    
+    steps:
+    - name: 📥 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 🐦 设置Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.10.4'
+        channel: 'stable'
+        
+    - name: 📦 获取依赖
+      run: flutter pub get
+      
+    - name: 🧪 运行测试
+      run: flutter test
+      
+    - name: 🔨 构建iOS (无签名)
+      run: flutter build ios --release --no-codesign
+      
+    - name: 📝 生成构建信息
+      run: |
+        mkdir -p build/ios-release
+        
+        # 复制构建产物
+        cp -r build/ios/iphoneos/Runner.app build/ios-release/
+        
+        # 生成构建信息
+        echo "# Prvin AI智能日历 - iOS版本" > build/ios-release/BUILD_INFO.md
+        echo "" >> build/ios-release/BUILD_INFO.md
+        echo "## 构建信息" >> build/ios-release/BUILD_INFO.md
+        echo "- **构建时间**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> build/ios-release/BUILD_INFO.md
+        echo "- **Git提交**: ${{ github.sha }}" >> build/ios-release/BUILD_INFO.md
+        echo "- **Git分支**: ${{ github.ref_name }}" >> build/ios-release/BUILD_INFO.md
+        echo "- **Flutter版本**: $(flutter --version | head -n 1)" >> build/ios-release/BUILD_INFO.md
+        echo "- **构建环境**: GitHub Actions (macOS)" >> build/ios-release/BUILD_INFO.md
+        echo "" >> build/ios-release/BUILD_INFO.md
+        echo "## 重要说明" >> build/ios-release/BUILD_INFO.md
+        echo "⚠️ **此构建未签名，无法直接安装到设备**" >> build/ios-release/BUILD_INFO.md
+        echo "" >> build/ios-release/BUILD_INFO.md
+        echo "### 开发者安装步骤" >> build/ios-release/BUILD_INFO.md
+        echo "1. 下载构建产物" >> build/ios-release/BUILD_INFO.md
+        echo "2. 在Xcode中打开项目" >> build/ios-release/BUILD_INFO.md
+        echo "3. 配置开发者证书和Provisioning Profile" >> build/ios-release/BUILD_INFO.md
+        echo "4. 重新构建并安装到设备" >> build/ios-release/BUILD_INFO.md
+        echo "" >> build/ios-release/BUILD_INFO.md
+        echo "### App Store发布" >> build/ios-release/BUILD_INFO.md
+        echo "1. 配置发布证书" >> build/ios-release/BUILD_INFO.md
+        echo "2. 使用Xcode Archive功能" >> build/ios-release/BUILD_INFO.md
+        echo "3. 上传到App Store Connect" >> build/ios-release/BUILD_INFO.md
+        echo "4. 提交审核" >> build/ios-release/BUILD_INFO.md
+        echo "" >> build/ios-release/BUILD_INFO.md
+        echo "## 系统要求" >> build/ios-release/BUILD_INFO.md
+        echo "- **iOS版本**: 11.0 或更高版本" >> build/ios-release/BUILD_INFO.md
+        echo "- **设备**: iPhone 6s 或更新设备" >> build/ios-release/BUILD_INFO.md
+        echo "- **存储空间**: 至少50MB可用空间" >> build/ios-release/BUILD_INFO.md
+        
+    - name: 📤 上传iOS构建产物
+      uses: actions/upload-artifact@v3
+      with:
+        name: ios-release
+        path: build/ios-release
+        retention-days: 90
+
+  # 创建移动端Release
+  create-mobile-release:
+    name: 📦 创建移动端Release
+    runs-on: ubuntu-latest
+    needs: [build-android]
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: 📥 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 📥 下载Android构建产物
+      uses: actions/download-artifact@v3
+      with:
+        name: android-release
+        path: android-release
+        
+    - name: 📥 下载iOS构建产物 (如果存在)
+      uses: actions/download-artifact@v3
+      with:
+        name: ios-release
+        path: ios-release
+      continue-on-error: true
+      
+    - name: 📦 打包构建产物
+      run: |
+        # 创建发布目录
+        mkdir -p release-packages
+        
+        # 打包Android
+        if [ -d "android-release" ]; then
+          cd android-release
+          zip -r ../release-packages/prvin-android-${{ github.ref_name }}.zip .
+          cd ..
+        fi
+        
+        # 打包iOS (如果存在)
+        if [ -d "ios-release" ]; then
+          cd ios-release
+          zip -r ../release-packages/prvin-ios-${{ github.ref_name }}.zip .
+          cd ..
+        fi
+        
+    - name: 📝 生成移动端Release说明
+      run: |
+        echo "# Prvin AI智能日历 移动端 ${{ github.ref_name }}" > mobile_release_notes.md
+        echo "" >> mobile_release_notes.md
+        echo "## 📱 移动端版本" >> mobile_release_notes.md
+        echo "" >> mobile_release_notes.md
+        echo "### 🤖 Android版本" >> mobile_release_notes.md
+        echo "- **APK文件**: 适用于直接安装" >> mobile_release_notes.md
+        echo "- **系统要求**: Android 5.0 (API 21) 或更高版本" >> mobile_release_notes.md
+        echo "- **安装方式**: 启用\"未知来源\"后直接安装APK" >> mobile_release_notes.md
+        echo "" >> mobile_release_notes.md
+        
+        if [ -d "ios-release" ]; then
+          echo "### 🍎 iOS版本" >> mobile_release_notes.md
+          echo "- **构建文件**: 需要开发者证书签名" >> mobile_release_notes.md
+          echo "- **系统要求**: iOS 11.0 或更高版本" >> mobile_release_notes.md
+          echo "- **安装方式**: 需要通过Xcode或TestFlight安装" >> mobile_release_notes.md
+          echo "" >> mobile_release_notes.md
+        fi
+        
+        echo "## 🚀 主要功能" >> mobile_release_notes.md
+        echo "- 📅 **智能日历**: 月/周/日视图，任务拖拽，时间冲突检测" >> mobile_release_notes.md
+        echo "- ✅ **任务管理**: 完整CRUD操作，智能分类，优先级管理" >> mobile_release_notes.md
+        echo "- 🍅 **番茄钟**: 沉浸式计时，专注统计，成就系统" >> mobile_release_notes.md
+        echo "- 🤖 **AI分析**: 工作模式分析，效率建议，智能推荐" >> mobile_release_notes.md
+        echo "- 🌐 **语言切换**: 中英文一键切换，状态保持" >> mobile_release_notes.md
+        echo "- 🔄 **数据同步**: 跨设备同步，离线支持" >> mobile_release_notes.md
+        echo "" >> mobile_release_notes.md
+        echo "## 📥 下载和安装" >> mobile_release_notes.md
+        echo "" >> mobile_release_notes.md
+        echo "### Android用户" >> mobile_release_notes.md
+        echo "1. 下载 \`prvin-android-${{ github.ref_name }}.zip\`" >> mobile_release_notes.md
+        echo "2. 解压获取 \`prvin-android.apk\`" >> mobile_release_notes.md
+        echo "3. 在设备设置中启用\"未知来源\"安装" >> mobile_release_notes.md
+        echo "4. 打开APK文件进行安装" >> mobile_release_notes.md
+        echo "" >> mobile_release_notes.md
+        
+        if [ -d "ios-release" ]; then
+          echo "### iOS用户" >> mobile_release_notes.md
+          echo "1. 下载 \`prvin-ios-${{ github.ref_name }}.zip\`" >> mobile_release_notes.md
+          echo "2. 需要开发者账户和Xcode进行签名" >> mobile_release_notes.md
+          echo "3. 或等待App Store版本发布" >> mobile_release_notes.md
+          echo "" >> mobile_release_notes.md
+        fi
+        
+        echo "## 🔧 技术信息" >> mobile_release_notes.md
+        echo "- **构建时间**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> mobile_release_notes.md
+        echo "- **Git提交**: ${{ github.sha }}" >> mobile_release_notes.md
+        echo "- **Flutter版本**: 3.10.4" >> mobile_release_notes.md
+        echo "- **最低Android版本**: 5.0 (API 21)" >> mobile_release_notes.md
+        
+        if [ -d "ios-release" ]; then
+          echo "- **最低iOS版本**: 11.0" >> mobile_release_notes.md
+        fi
+        
+        echo "" >> mobile_release_notes.md
+        echo "## ⚠️ 重要提醒" >> mobile_release_notes.md
+        echo "- Android APK未在Google Play商店发布，请确保从官方渠道下载" >> mobile_release_notes.md
+        echo "- iOS版本需要开发者证书签名，建议等待App Store版本" >> mobile_release_notes.md
+        echo "- 首次安装可能需要在设备设置中信任应用" >> mobile_release_notes.md
+        
+    - name: 🏷️ 更新现有Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: Prvin AI智能日历 ${{ github.ref_name }}
+        body_path: mobile_release_notes.md
+        files: |
+          release-packages/*
+        draft: false
+        prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+        append_body: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: 📢 移动端Release更新成功
+      run: |
+        echo "✅ 移动端构建产物已添加到Release！"
+        echo "🏷️ 版本: ${{ github.ref_name }}"
+        echo "📦 Release页面: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+        echo "🤖 Android APK已包含在发布中"
+        if [ -d "ios-release" ]; then
+          echo "🍎 iOS构建文件已包含在发布中"
+        fi
+
+  # 通知构建完成
+  notify-completion:
+    name: 📢 构建完成通知
+    runs-on: ubuntu-latest
+    needs: [build-android, build-ios]
+    if: always()
+    
+    steps:
+    - name: 📊 构建状态汇总
+      run: |
+        echo "## 📱 移动端构建状态汇总"
+        echo ""
+        
+        # Android构建状态
+        if [ "${{ needs.build-android.result }}" == "success" ]; then
+          echo "✅ Android构建成功"
+        elif [ "${{ needs.build-android.result }}" == "skipped" ]; then
+          echo "⏭️ Android构建已跳过"
+        else
+          echo "❌ Android构建失败"
+        fi
+        
+        # iOS构建状态
+        if [ "${{ needs.build-ios.result }}" == "success" ]; then
+          echo "✅ iOS构建成功"
+        elif [ "${{ needs.build-ios.result }}" == "skipped" ]; then
+          echo "⏭️ iOS构建已跳过"
+        else
+          echo "❌ iOS构建失败"
+        fi
+        
+        echo ""
+        echo "🔗 查看详细日志: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"

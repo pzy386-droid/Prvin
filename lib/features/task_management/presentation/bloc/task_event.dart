@@ -84,3 +84,23 @@ class TaskDateChanged extends TaskEvent {
   @override
   List<Object?> get props => [date];
 }
+
+/// 请求AI任务建议
+class TaskAISuggestionsRequested extends TaskEvent {
+  const TaskAISuggestionsRequested(this.taskTitle);
+
+  final String taskTitle;
+
+  @override
+  List<Object> get props => [taskTitle];
+}
+
+/// 请求AI任务优化建议
+class TaskOptimizationSuggestionsRequested extends TaskEvent {
+  const TaskOptimizationSuggestionsRequested();
+}
+
+/// 清除AI建议
+class TaskAISuggestionsCleared extends TaskEvent {
+  const TaskAISuggestionsCleared();
+}

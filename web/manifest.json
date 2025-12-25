@@ -1,23 +1,78 @@
 {
-    "name": "my_first_app",
-    "short_name": "my_first_app",
+    "name": "Prvin AI智能日历",
+    "short_name": "Prvin日历",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#2196F3",
+    "theme_color": "#2196F3",
+    "description": "集成AI功能的现代化日程管理应用，支持任务管理、番茄钟专注、一键语言切换等功能",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "scope": "/",
+    "lang": "zh-CN",
+    "categories": ["productivity", "utilities", "lifestyle"],
+    "screenshots": [
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Prvin AI日历主界面"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "快速创建任务",
+            "short_name": "新任务",
+            "description": "快速创建新的任务或事件",
+            "url": "/?action=create-task",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "番茄钟专注",
+            "short_name": "专注",
+            "description": "启动番茄钟专注模式",
+            "url": "/?action=pomodoro",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "今日任务",
+            "short_name": "今日",
+            "description": "查看今日的任务和日程",
+            "url": "/?action=today",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        }
+    ],
     "icons": [
         {
             "src": "icons/Icon-192.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "icons/Icon-512.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "icons/Icon-maskable-192.png",

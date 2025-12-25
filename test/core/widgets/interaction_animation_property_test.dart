@@ -1,514 +1,296 @@
+import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prvin/core/theme/theme_exports.dart';
-import 'package:prvin/core/widgets/widgets_exports.dart';
+import 'package:prvin/core/bloc/app_bloc.dart';
+import 'package:prvin/core/widgets/one_click_language_toggle_button.dart';
 
-/// **Feature: ai-calendar-app, Property 7: 交互动画反馈**
-/// **验证需求: 需求 3.2, 3.4**
-///
-/// 属性测试：对于任何用户界面交互（悬停、点击、拖拽），应该触发相应的动画反馈效果
+/// **Feature: one-click-language-toggle, Property 6: 动画状态一致性**
+/// *对于任何*语言切换动画，动画完成后按钮应该处于稳定状态，显示正确的语言标识
+/// **Validates: Requirements 1.5, 2.4**
+
 void main() {
-  group('交互动画反馈属性测试', () {
-    testWidgets('属性7: 按钮点击应该触发动画反馈效果', (WidgetTester tester) async {
-      // **Feature: ai-calendar-app, Property 7: 交互动画反馈**
+  group('Animation State Consistency Property Tests', () {
+    late AppBloc appBloc;
+    late Faker faker;
 
-      var wasPressed = false;
-
-      // 创建测试应用
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: AppButton(
-                text: '测试按钮',
-                onPressed: () {
-                  wasPressed = true;
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-
-      // 查找按钮
-      final buttonFinder = find.byType(AppButton);
-      expect(buttonFinder, findsOneWidget);
-
-      // 获取按钮初始状态
-      final initialButton = tester.widget<AppButton>(buttonFinder);
-      expect(initialButton.animateOnTap, isTrue);
-
-      // 模拟点击按钮
-      await tester.tap(buttonFinder);
-      await tester.pump(); // 触发动画开始
-
-      // 验证按钮被点击
-      expect(wasPressed, isTrue);
-
-      // 等待动画完成
-      await tester.pumpAndSettle();
-
-      // 验证动画系统被正确集成
-      // 由于我们使用了MicroInteractions.createElasticButton，
-      // 应该能找到相关的动画组件
-      expect(find.byType(GestureDetector), findsWidgets);
+    setUp(() {
+      appBloc = AppBloc();
+      faker = Faker();
     });
 
-    testWidgets('属性7: 卡片点击应该触发动画反馈效果', (WidgetTester tester) async {
-      // **Feature: ai-calendar-app, Property 7: 交互动画反馈**
-
-      var wasTapped = false;
-
-      // 创建测试应用
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: AppCard(
-                onTap: () {
-                  wasTapped = true;
-                },
-                child: const Text('测试卡片'),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      // 查找卡片
-      final cardFinder = find.byType(AppCard);
-      expect(cardFinder, findsOneWidget);
-
-      // 获取卡片初始状态
-      final initialCard = tester.widget<AppCard>(cardFinder);
-      expect(initialCard.animateOnTap, isTrue);
-      expect(initialCard.onTap, isNotNull);
-
-      // 模拟点击卡片
-      await tester.tap(cardFinder);
-      await tester.pump(); // 触发动画开始
-
-      // 验证卡片被点击
-      expect(wasTapped, isTrue);
-
-      // 等待动画完成
-      await tester.pumpAndSettle();
-
-      // 验证交互组件存在
-      expect(find.byType(InkWell), findsOneWidget);
+    tearDown(() {
+      appBloc.close();
     });
 
-    testWidgets('属性7: 任务卡片交互应该触发动画反馈', (WidgetTester tester) async {
-      // **Feature: ai-calendar-app, Property 7: 交互动画反馈**
+    testWidgets(
+      'Property 6: 动画状态一致性 - animation completion should result in stable button state',
+      (WidgetTester tester) async {
+        // **Feature: one-click-language-toggle, Property 6: 动画状态一致性**
 
-      var taskTapped = false;
-      var togglePressed = false;
+        // 运行100次迭代以确保属性在各种输入下都成立
+        for (var iteration = 0; iteration < 100; iteration++) {
+          // 生成随机的初始语言状态
+          final initialLanguage = _generateRandomLanguageState(faker);
+          final targetLanguage = initialLanguage == 'zh' ? 'en' : 'zh';
 
-      // 创建测试应用
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: TaskCard(
-                title: '测试任务',
-                description: '这是一个测试任务',
-                category: 'work',
-                priority: 'high',
-                onTap: () {
-                  taskTapped = true;
-                },
-                onToggleComplete: () {
-                  togglePressed = true;
-                },
-              ),
-            ),
-          ),
-        ),
-      );
+          // 设置初始状态
+          appBloc.emit(AppReadyState(languageCode: initialLanguage));
 
-      // 查找任务卡片
-      final taskCardFinder = find.byType(TaskCard);
-      expect(taskCardFinder, findsOneWidget);
-
-      // 模拟点击任务卡片
-      await tester.tap(taskCardFinder);
-      await tester.pump();
-
-      // 验证任务卡片被点击
-      expect(taskTapped, isTrue);
-
-      // 查找完成状态切换按钮（通过查找Container来定位切换按钮）
-      final toggleContainers = find.byType(Container);
-      if (toggleContainers.evaluate().isNotEmpty) {
-        // 尝试点击第一个可能的切换按钮区域
-        await tester.tap(toggleContainers.first);
-        await tester.pump();
-      }
-
-      // 由于UI结构复杂，我们主要验证任务卡片的基本交互功能
-      // 验证任务卡片被正确渲染和交互
-      expect(taskTapped, isTrue);
-
-      // 等待所有动画完成
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('属性7: 输入框焦点变化应该触发视觉反馈', (WidgetTester tester) async {
-      // **Feature: ai-calendar-app, Property 7: 交互动画反馈**
-
-      final controller = TextEditingController();
-
-      // 创建测试应用
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: AppInput(
-                controller: controller,
-                label: '测试输入框',
-                hint: '请输入内容',
-              ),
-            ),
-          ),
-        ),
-      );
-
-      // 查找输入框
-      final inputFinder = find.byType(TextFormField);
-      expect(inputFinder, findsOneWidget);
-
-      // 模拟点击输入框获得焦点
-      await tester.tap(inputFinder);
-      await tester.pump();
-
-      // 验证输入框获得焦点
-      // 通过检查是否有焦点相关的状态变化来验证交互
-      expect(inputFinder, findsOneWidget);
-
-      // 等待焦点动画完成
-      await tester.pumpAndSettle();
-
-      // 模拟输入文本
-      await tester.enterText(inputFinder, '测试文本');
-      await tester.pump();
-
-      // 验证文本输入
-      expect(controller.text, equals('测试文本'));
-
-      // 模拟失去焦点
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('属性7: 进度指示器动画应该正确播放', (WidgetTester tester) async {
-      // **Feature: ai-calendar-app, Property 7: 交互动画反馈**
-
-      var progressValue = 0.3;
-
-      // 创建测试应用
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: StatefulBuilder(
-                builder: (context, setState) {
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AppProgress(
-                        value: progressValue,
-                        type: AppProgressType.circular,
-                        showPercentage: true,
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            progressValue = 0.8;
-                          });
-                        },
-                        child: const Text('更新进度'),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-
-      // 查找进度指示器
-      final progressFinder = find.byType(AppProgress);
-      expect(progressFinder, findsOneWidget);
-
-      // 获取初始进度值
-      final initialProgress = tester.widget<AppProgress>(progressFinder);
-      expect(initialProgress.value, equals(0.3));
-      expect(initialProgress.animated, isTrue);
-
-      // 查找更新按钮并点击
-      final buttonFinder = find.text('更新进度');
-      await tester.tap(buttonFinder);
-      await tester.pump();
-
-      // 验证进度值已更新
-      final updatedProgress = tester.widget<AppProgress>(progressFinder);
-      expect(updatedProgress.value, equals(0.8));
-
-      // 等待动画完成
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('属性7: Lottie动画组件应该正确播放动画', (WidgetTester tester) async {
-      // **Feature: ai-calendar-app, Property 7: 交互动画反馈**
-
-      var animationCompleted = false;
-
-      // 创建测试应用
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: AppLottie(
-                type: AppLottieType.success,
-                repeat: false,
-                onComplete: () {
-                  animationCompleted = true;
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-
-      // 查找Lottie动画组件
-      final lottieFinder = find.byType(AppLottie);
-      expect(lottieFinder, findsOneWidget);
-
-      // 获取动画组件
-      final lottieWidget = tester.widget<AppLottie>(lottieFinder);
-      expect(lottieWidget.animate, isTrue);
-      expect(lottieWidget.type, equals(AppLottieType.success));
-
-      // 等待动画播放
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.pump(const Duration(milliseconds: 200));
-      await tester.pump(const Duration(milliseconds: 300));
-
-      // 等待动画完成
-      await tester.pumpAndSettle();
-
-      // 验证动画完成回调被触发
-      expect(animationCompleted, isTrue);
-    });
-
-    group('微动效交互测试', () {
-      testWidgets('属性7: 交互容器应该响应悬停和点击', (WidgetTester tester) async {
-        // **Feature: ai-calendar-app, Property 7: 交互动画反馈**
-
-        var wasTapped = false;
-
-        // 创建测试应用
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: Center(
-                child: MicroInteractions.createInteractiveContainer(
-                  onTap: () {
-                    wasTapped = true;
-                  },
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    color: Colors.blue,
-                    child: const Center(child: Text('点击我')),
-                  ),
+          // 创建测试应用
+          await tester.pumpWidget(
+            MaterialApp(
+              home: BlocProvider<AppBloc>.value(
+                value: appBloc,
+                child: const Scaffold(
+                  body: Center(child: OneClickLanguageToggleButton()),
                 ),
               ),
             ),
-          ),
-        );
+          );
 
-        // 查找交互容器
-        final containerFinder = find.text('点击我');
-        expect(containerFinder, findsOneWidget);
+          // 查找语言切换按钮
+          final buttonFinder = find.byType(OneClickLanguageToggleButton);
+          expect(buttonFinder, findsOneWidget);
 
-        // 模拟点击
-        await tester.tap(containerFinder);
-        await tester.pump();
+          // 验证初始状态显示正确
+          final initialDisplayText = _getExpectedDisplayText(initialLanguage);
+          expect(find.text(initialDisplayText), findsOneWidget);
 
-        // 验证点击被处理
-        expect(wasTapped, isTrue);
+          // 模拟点击按钮触发动画
+          await tester.tap(buttonFinder);
+          await tester.pump(); // 开始动画
 
-        // 等待动画完成
-        await tester.pumpAndSettle();
+          // 等待动画进行中的状态
+          await tester.pump(const Duration(milliseconds: 50));
+          await tester.pump(const Duration(milliseconds: 100));
+          await tester.pump(const Duration(milliseconds: 150));
 
-        // 验证手势检测器存在
-        expect(find.byType(GestureDetector), findsWidgets);
-        expect(find.byType(MouseRegion), findsWidgets);
-      });
+          // 等待动画完全完成
+          await tester.pumpAndSettle();
 
-      testWidgets('属性7: 弹性按钮应该有弹性效果', (WidgetTester tester) async {
-        // **Feature: ai-calendar-app, Property 7: 交互动画反馈**
+          // 验证动画完成后的状态一致性
+          final expectedFinalDisplayText = _getExpectedDisplayText(
+            targetLanguage,
+          );
 
-        var wasPressed = false;
+          // 属性验证：动画完成后按钮应该显示正确的语言标识
+          expect(
+            find.text(expectedFinalDisplayText),
+            findsOneWidget,
+            reason:
+                'Animation completion should result in correct language display. '
+                'Expected: $expectedFinalDisplayText for language: $targetLanguage '
+                'in iteration $iteration',
+          );
 
-        // 创建测试应用
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: Center(
-                child: MicroInteractions.createElasticButton(
-                  onPressed: () {
-                    wasPressed = true;
-                  },
-                  child: Container(
-                    width: 100,
-                    height: 50,
-                    color: Colors.green,
-                    child: const Center(child: Text('弹性按钮')),
-                  ),
+          // 验证按钮处于稳定状态（没有动画进行中的指示器）
+          final buttonWidget = tester.widget<OneClickLanguageToggleButton>(
+            buttonFinder,
+          );
+          expect(buttonWidget, isNotNull);
+
+          // 验证没有多个语言标识同时显示（状态不一致的表现）
+          final chineseDisplayCount = tester.widgetList(find.text('中')).length;
+          final englishDisplayCount = tester.widgetList(find.text('EN')).length;
+
+          expect(
+            chineseDisplayCount + englishDisplayCount,
+            equals(1),
+            reason:
+                'Only one language display should be visible after animation completion. '
+                'Found Chinese: $chineseDisplayCount, English: $englishDisplayCount '
+                'in iteration $iteration',
+          );
+
+          // 清理状态以准备下一次迭代
+          await tester.pumpWidget(Container());
+          await tester.pumpAndSettle();
+        }
+      },
+    );
+
+    testWidgets(
+      'Property 6: 动画状态一致性 - rapid consecutive toggles should maintain state consistency',
+      (WidgetTester tester) async {
+        // **Feature: one-click-language-toggle, Property 6: 动画状态一致性**
+
+        // 测试快速连续切换的动画状态一致性
+        for (var iteration = 0; iteration < 50; iteration++) {
+          final initialLanguage = _generateRandomLanguageState(faker);
+
+          // 生成随机的快速切换次数 (2-6次)
+          final rapidToggleCount = faker.randomGenerator.integer(5) + 2;
+
+          appBloc.emit(AppReadyState(languageCode: initialLanguage));
+
+          // 创建测试应用
+          await tester.pumpWidget(
+            MaterialApp(
+              home: BlocProvider<AppBloc>.value(
+                value: appBloc,
+                child: const Scaffold(
+                  body: Center(child: OneClickLanguageToggleButton()),
                 ),
               ),
             ),
-          ),
-        );
+          );
 
-        // 查找弹性按钮
-        final buttonFinder = find.text('弹性按钮');
-        expect(buttonFinder, findsOneWidget);
+          final buttonFinder = find.byType(OneClickLanguageToggleButton);
+          expect(buttonFinder, findsOneWidget);
 
-        // 模拟点击
-        await tester.tap(buttonFinder);
-        await tester.pump();
+          // 执行快速连续点击
+          var currentLang = initialLanguage;
+          for (var i = 0; i < rapidToggleCount; i++) {
+            await tester.tap(buttonFinder);
+            await tester.pump(const Duration(milliseconds: 10)); // 很短的间隔
 
-        // 验证点击被处理
-        expect(wasPressed, isTrue);
+            // 更新语言状态
+            currentLang = currentLang == 'zh' ? 'en' : 'zh';
+            appBloc.emit(AppReadyState(languageCode: currentLang));
+          }
 
-        // 等待弹性动画完成
-        await tester.pumpAndSettle();
+          // 等待所有动画完成
+          await tester.pumpAndSettle();
 
-        // 验证手势检测器存在
-        expect(find.byType(GestureDetector), findsWidgets);
-      });
+          // 验证最终状态一致性
+          final finalExpectedLanguage = rapidToggleCount % 2 == 0
+              ? initialLanguage
+              : (initialLanguage == 'zh' ? 'en' : 'zh');
 
-      testWidgets('属性7: 渐变出现组件应该有渐变效果', (WidgetTester tester) async {
-        // **Feature: ai-calendar-app, Property 7: 交互动画反馈**
+          final expectedDisplayText = _getExpectedDisplayText(
+            finalExpectedLanguage,
+          );
 
-        // 创建测试应用
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: Center(
-                child: MicroInteractions.createFadeInWidget(
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    color: Colors.red,
-                    child: const Center(child: Text('渐变出现')),
-                  ),
+          // 属性验证：快速切换后应该显示正确的最终状态
+          expect(
+            find.text(expectedDisplayText),
+            findsOneWidget,
+            reason:
+                'Rapid toggles should result in consistent final state. '
+                'Expected: $expectedDisplayText after $rapidToggleCount toggles '
+                'starting from $initialLanguage in iteration $iteration',
+          );
+
+          // 验证状态稳定性（没有重复的显示文本）
+          final allTextWidgets = tester.widgetList(find.byType(Text));
+          final displayTexts = allTextWidgets
+              .map((widget) => (widget as Text).data)
+              .where((text) => text == '中' || text == 'EN')
+              .toList();
+
+          expect(
+            displayTexts.length,
+            equals(1),
+            reason:
+                'Should have exactly one language display after rapid toggles. '
+                'Found displays: $displayTexts in iteration $iteration',
+          );
+
+          // 清理状态
+          await tester.pumpWidget(Container());
+          await tester.pumpAndSettle();
+        }
+      },
+    );
+
+    testWidgets(
+      'Property 6: 动画状态一致性 - animation interruption should recover to stable state',
+      (WidgetTester tester) async {
+        // **Feature: one-click-language-toggle, Property 6: 动画状态一致性**
+
+        // 测试动画中断后的状态恢复
+        for (var iteration = 0; iteration < 30; iteration++) {
+          final initialLanguage = _generateRandomLanguageState(faker);
+          final targetLanguage = initialLanguage == 'zh' ? 'en' : 'zh';
+
+          appBloc.emit(AppReadyState(languageCode: initialLanguage));
+
+          // 创建测试应用
+          await tester.pumpWidget(
+            MaterialApp(
+              home: BlocProvider<AppBloc>.value(
+                value: appBloc,
+                child: const Scaffold(
+                  body: Center(child: OneClickLanguageToggleButton()),
                 ),
               ),
             ),
-          ),
-        );
+          );
 
-        // 查找渐变组件
-        final fadeWidgetFinder = find.text('渐变出现');
-        expect(fadeWidgetFinder, findsOneWidget);
+          final buttonFinder = find.byType(OneClickLanguageToggleButton);
+          expect(buttonFinder, findsOneWidget);
 
-        // 等待渐变动画开始
-        await tester.pump(const Duration(milliseconds: 50));
-        await tester.pump(const Duration(milliseconds: 100));
-        await tester.pump(const Duration(milliseconds: 150));
+          // 开始动画
+          await tester.tap(buttonFinder);
+          await tester.pump();
 
-        // 等待动画完成
-        await tester.pumpAndSettle();
+          // 在动画进行中模拟中断（例如快速重新构建）
+          final interruptionDelay = Duration(
+            milliseconds: faker.randomGenerator.integer(200) + 50,
+          );
+          await tester.pump(interruptionDelay);
 
-        // 验证组件最终可见
-        expect(fadeWidgetFinder, findsOneWidget);
-      });
-    });
+          // 模拟状态更新
+          appBloc.emit(AppReadyState(languageCode: targetLanguage));
 
-    group('动画配置测试', () {
-      test('属性7: 动画主题配置应该提供正确的时长和曲线', () {
-        // **Feature: ai-calendar-app, Property 7: 交互动画反馈**
-
-        // 验证动画时长配置
-        expect(
-          AnimationTheme.microAnimationDuration,
-          equals(const Duration(milliseconds: 150)),
-        );
-        expect(
-          AnimationTheme.shortAnimationDuration,
-          equals(const Duration(milliseconds: 200)),
-        );
-        expect(
-          AnimationTheme.mediumAnimationDuration,
-          equals(const Duration(milliseconds: 300)),
-        );
-        expect(
-          AnimationTheme.longAnimationDuration,
-          equals(const Duration(milliseconds: 500)),
-        );
-
-        // 验证缓动曲线配置
-        expect(AnimationTheme.defaultCurve, equals(Curves.easeInOutCubic));
-        expect(AnimationTheme.elasticCurve, equals(Curves.elasticOut));
-        expect(AnimationTheme.bounceCurve, equals(Curves.bounceOut));
-        expect(AnimationTheme.physicalCurve, isA<Cubic>());
-
-        // 验证微动效配置
-        expect(AnimationTheme.hoverScale, equals(1.05));
-        expect(AnimationTheme.tapScale, equals(0.95));
-        expect(AnimationTheme.dragScale, equals(1.1));
-      });
-
-      test('属性7: 微光效果配置应该正确', () {
-        // **Feature: ai-calendar-app, Property 7: 交互动画反馈**
-
-        // 验证微光动画配置
-        expect(
-          AnimationTheme.glowAnimationDuration,
-          equals(const Duration(milliseconds: 1500)),
-        );
-        expect(AnimationTheme.glowOpacityMin, equals(0.3));
-        expect(AnimationTheme.glowOpacityMax, equals(0.8));
-        expect(AnimationTheme.glowBlurRadius, equals(20.0));
-
-        // 验证晃动动画配置
-        expect(AnimationTheme.shakeAmplitude, equals(2.0));
-        expect(
-          AnimationTheme.shakeAnimationDuration,
-          equals(const Duration(milliseconds: 100)),
-        );
-      });
-    });
-
-    group('响应式动画测试', () {
-      testWidgets('属性7: 响应式动画时长应该根据设备类型调整', (WidgetTester tester) async {
-        // **Feature: ai-calendar-app, Property 7: 交互动画反馈**
-
-        // 创建测试应用
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Builder(
-              builder: (context) {
-                // 测试响应式动画时长
-                final duration = ResponsiveTheme.getResponsiveAnimationDuration(
-                  context,
-                );
-                expect(duration, isA<Duration>());
-                expect(duration.inMilliseconds, greaterThan(0));
-
-                return const Scaffold(body: Center(child: Text('响应式动画测试')));
-              },
+          // 强制重新构建来模拟中断
+          await tester.pumpWidget(
+            MaterialApp(
+              home: BlocProvider<AppBloc>.value(
+                value: appBloc,
+                child: const Scaffold(
+                  body: Center(child: OneClickLanguageToggleButton()),
+                ),
+              ),
             ),
-          ),
-        );
+          );
 
-        await tester.pumpAndSettle();
-      });
-    });
+          // 等待恢复到稳定状态
+          await tester.pumpAndSettle();
+
+          // 验证恢复后的状态一致性
+          final expectedDisplayText = _getExpectedDisplayText(targetLanguage);
+
+          // 属性验证：动画中断后应该恢复到正确的稳定状态
+          expect(
+            find.text(expectedDisplayText),
+            findsOneWidget,
+            reason:
+                'Animation interruption should recover to stable state. '
+                'Expected: $expectedDisplayText for language: $targetLanguage '
+                'after interruption at ${interruptionDelay.inMilliseconds}ms '
+                'in iteration $iteration',
+          );
+
+          // 验证没有状态不一致的表现
+          final chineseCount = tester.widgetList(find.text('中')).length;
+          final englishCount = tester.widgetList(find.text('EN')).length;
+
+          expect(
+            chineseCount + englishCount,
+            equals(1),
+            reason:
+                'Should have exactly one language display after recovery. '
+                'Found Chinese: $chineseCount, English: $englishCount '
+                'in iteration $iteration',
+          );
+
+          // 清理状态
+          await tester.pumpWidget(Container());
+          await tester.pumpAndSettle();
+        }
+      },
+    );
   });
+}
+
+/// 生成随机的语言状态
+String _generateRandomLanguageState(Faker faker) {
+  return faker.randomGenerator.boolean() ? 'zh' : 'en';
+}
+
+/// 获取预期的显示文本
+String _getExpectedDisplayText(String languageCode) {
+  return languageCode == 'zh' ? '中' : 'EN';
 }

@@ -1,22 +1,5 @@
 import 'package:equatable/equatable.dart';
-
-/// 任务分类枚举
-enum TaskCategory {
-  /// 工作
-  work,
-
-  /// 学习
-  study,
-
-  /// 个人
-  personal,
-
-  /// 健康
-  health,
-
-  /// 其他
-  other,
-}
+import 'package:prvin/features/task_management/domain/entities/task.dart';
 
 /// 生产力趋势数据
 class ProductivityTrend extends Equatable {

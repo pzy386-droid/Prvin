@@ -15,8 +15,7 @@ class OverlayTaskCreator {
   /// 显示任务创建浮层
   static void show(
     BuildContext context, {
-    DateTime? initialDate,
-    required TaskBloc taskBloc,
+    required TaskBloc taskBloc, DateTime? initialDate,
   }) {
     // 如果已经显示，先隐藏
     if (_overlayEntry != null) {
@@ -48,7 +47,7 @@ class OverlayTaskCreator {
 
 /// 内部的Overlay任务创建Widget
 class _OverlayTaskWidget extends StatefulWidget {
-  const _OverlayTaskWidget({this.initialDate, required this.onClose});
+  const _OverlayTaskWidget({required this.onClose, this.initialDate});
 
   final DateTime? initialDate;
   final VoidCallback onClose;
@@ -565,7 +564,6 @@ class _OverlayTaskWidgetState extends State<_OverlayTaskWidget>
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(isStart ? _startTime : _endTime),
-      useRootNavigator: true,
       routeSettings: const RouteSettings(name: '/time_picker'),
       builder: (context, child) {
         return Theme(

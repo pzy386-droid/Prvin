@@ -1,8 +1,8 @@
-import 'package:flutter/widget_previews.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import 'package:prvin/features/task_management/domain/entities/task.dart';
 
 /// 任务卡片预览
@@ -41,7 +41,6 @@ Widget personalTaskCardPreview() {
     startTime: DateTime.now().add(const Duration(hours: 1)),
     endTime: DateTime.now().add(const Duration(hours: 2)),
     tags: const ['健康', '运动'],
-    priority: TaskPriority.medium,
     category: TaskCategory.health,
     createdAt: DateTime.now(),
     updatedAt: DateTime.now(),

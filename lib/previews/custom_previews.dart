@@ -1,5 +1,5 @@
-import 'package:flutter/widget_previews.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 
 /// 简单的任务卡片预览
 @Preview(name: '任务卡片 - 基础样式', group: '任务组件', size: Size(400, 200))

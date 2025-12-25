@@ -43,3 +43,46 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# GitHub Pages deployment
+/web/build/
+/docs/_site/
+
+# Release artifacts
+*.apk
+*.aab
+*.ipa
+*.dmg
+*.exe
+*.msi
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# IDE specific files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Log files
+*.log
+logs/
+
+# Coverage reports
+coverage/
+lcov.info
+
+# Documentation build
+/docs/build/
+
+# Release notes and changelogs
+RELEASE_NOTES.md
+CHANGELOG_TEMP.md

@@ -1,10 +1,11 @@
 import 'package:prvin/core/cache/cache_manager.dart';
-import 'package:prvin/features/tasks/data/datasources/task_local_datasource.dart';
-import 'package:prvin/features/tasks/data/models/task_model.dart';
+import 'package:prvin/features/task_management/data/datasources/task_local_datasource.dart';
+import 'package:prvin/features/task_management/data/models/task_model.dart';
+import 'package:prvin/features/task_management/domain/entities/task.dart'
+    as entities;
 
 /// 带缓存的任务数据源装饰器
 class CachedTaskDataSource implements TaskLocalDataSource {
-
   CachedTaskDataSource(this._dataSource)
     : _taskCache = CacheManager<String, TaskModel>(
         maxSize: 200,
@@ -67,7 +68,7 @@ class CachedTaskDataSource implements TaskLocalDataSource {
   }
 
   @override
-  Future<List<TaskModel>> getTasksByStatus(TaskStatus status) async {
+  Future<List<TaskModel>> getTasksByStatus(entities.TaskStatus status) async {
     final cacheKey = 'tasks_status_${status.name}';
 
     // 尝试从缓存获取
@@ -86,7 +87,9 @@ class CachedTaskDataSource implements TaskLocalDataSource {
   }
 
   @override
-  Future<List<TaskModel>> getTasksByCategory(TaskCategory category) async {
+  Future<List<TaskModel>> getTasksByCategory(
+    entities.TaskCategory category,
+  ) async {
     final cacheKey = 'tasks_category_${category.name}';
 
     // 尝试从缓存获取

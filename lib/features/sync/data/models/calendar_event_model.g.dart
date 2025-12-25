@@ -10,23 +10,23 @@ CalendarEventModel _$CalendarEventModelFromJson(Map<String, dynamic> json) =>
     CalendarEventModel(
       id: json['id'] as String,
       title: json['title'] as String,
-      description: json['description'] as String?,
       startTime: DateTime.parse(json['startTime'] as String),
       endTime: DateTime.parse(json['endTime'] as String),
       source: $enumDecode(_$EventSourceEnumMap, json['source']),
-      externalId: json['externalId'] as String?,
       isAllDay: json['isAllDay'] as bool,
-      location: json['location'] as String?,
       attendees: (json['attendees'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
       reminders: (json['reminders'] as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
-      recurrenceRule: json['recurrenceRule'] as String?,
       metadata: json['metadata'] as Map<String, dynamic>,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      description: json['description'] as String?,
+      externalId: json['externalId'] as String?,
+      location: json['location'] as String?,
+      recurrenceRule: json['recurrenceRule'] as String?,
       lastSyncAt: json['lastSyncAt'] == null
           ? null
           : DateTime.parse(json['lastSyncAt'] as String),

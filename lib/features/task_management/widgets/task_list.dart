@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:prvin/core/theme/theme_exports.dart';
 import 'package:prvin/core/widgets/widgets_exports.dart';
 import 'package:prvin/features/task_management/widgets/task_form.dart';
@@ -8,7 +9,8 @@ import 'package:prvin/features/task_management/widgets/task_form.dart';
 class TaskList extends StatefulWidget {
   /// 创建任务列表组件
   const TaskList({
-    required this.tasks, super.key,
+    required this.tasks,
+    super.key,
     this.onTaskTap,
     this.onTaskEdit,
     this.onTaskDelete,
@@ -180,6 +182,7 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
     }
 
     return AnimatedBuilder(
+      key: key, // 将 key 移到最外层的 widget
       animation: _itemControllers[index],
       builder: (context, child) {
         return SlideTransition(
@@ -193,7 +196,6 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
           child: FadeTransition(
             opacity: _itemControllers[index],
             child: Container(
-              key: key,
               margin: const EdgeInsets.only(bottom: AppTheme.spacingM),
               child: TaskCard(
                 task: task,
@@ -223,7 +225,8 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
 class TaskCard extends StatefulWidget {
   /// 创建任务卡片组件
   const TaskCard({
-    required this.task, super.key,
+    required this.task,
+    super.key,
     this.onTap,
     this.onEdit,
     this.onDelete,
@@ -307,34 +310,76 @@ class _TaskCardState extends State<TaskCard> with TickerProviderStateMixin {
         builder: (context, child) {
           return Transform.scale(
             scale: _hoverAnimation.value,
-            child: GestureDetector(
-              onTap: widget.onTap,
-              child: AppCard(
-                elevation: _isHovered ? 8 : 2,
-                child: AnimatedOpacity(
-                  opacity: widget.task.isCompleted ? 0.7 : 1.0,
-                  duration: AnimationTheme.shortAnimationDuration,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(),
-                      if (widget.task.description != null) ...[
-                        const SizedBox(height: AppTheme.spacingS),
-                        _buildDescription(),
-                      ],
-                      const SizedBox(height: AppTheme.spacingM),
-                      _buildMetadata(),
-                      if (widget.task.tags.isNotEmpty) ...[
-                        const SizedBox(height: AppTheme.spacingM),
-                        _buildTags(),
-                      ],
+            child: MicroInteractions.createDraggableWithEffects(
+              data: widget.task,
+              feedback: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 300,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
                     ],
                   ),
+                  child: Text(
+                    widget.task.title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
                 ),
+              ),
+              childWhenDragging: Opacity(
+                opacity: 0.5,
+                child: _buildCardContent(),
+              ),
+              onDragStarted: HapticFeedback.lightImpact,
+              onDragEnd: () {
+                // 拖拽结束时的处理
+              },
+              child: GestureDetector(
+                onTap: widget.onTap,
+                child: _buildCardContent(),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildCardContent() {
+    return AppCard(
+      elevation: _isHovered ? 8 : 2,
+      child: AnimatedOpacity(
+        opacity: widget.task.isCompleted ? 0.7 : 1.0,
+        duration: AnimationTheme.shortAnimationDuration,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(),
+            if (widget.task.description != null) ...[
+              const SizedBox(height: AppTheme.spacingS),
+              _buildDescription(),
+            ],
+            const SizedBox(height: AppTheme.spacingM),
+            _buildMetadata(),
+            if (widget.task.tags.isNotEmpty) ...[
+              const SizedBox(height: AppTheme.spacingM),
+              _buildTags(),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -634,7 +679,8 @@ class TaskItem {
   const TaskItem({
     required this.id,
     required this.title,
-    required this.date, this.description,
+    required this.date,
+    this.description,
     this.startTime,
     this.endTime,
     this.category,

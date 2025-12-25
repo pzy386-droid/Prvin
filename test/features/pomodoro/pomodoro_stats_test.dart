@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prvin/features/pomodoro/models/pomodoro_session.dart';
-import 'package:prvin/features/pomodoro/models/pomodoro_stats.dart';
+import 'package:prvin/features/pomodoro/domain/entities/pomodoro_session.dart';
+import 'package:prvin/features/pomodoro/domain/entities/pomodoro_stats.dart';
 
 void main() {
   group('PomodoroSession Tests', () {
@@ -155,7 +155,7 @@ void main() {
     });
 
     test('should handle empty sessions list', () {
-      final stats = PomodoroStats.fromSessions([]);
+      final stats = PomodoroStats.fromSessions(const []);
 
       expect(stats.totalSessions, 0);
       expect(stats.completedSessions, 0);

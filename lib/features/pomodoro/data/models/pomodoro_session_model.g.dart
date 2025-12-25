@@ -11,9 +11,6 @@ PomodoroSessionModel _$PomodoroSessionModelFromJson(
 ) => PomodoroSessionModel(
   id: json['id'] as String,
   startTime: DateTime.parse(json['startTime'] as String),
-  endTime: json['endTime'] == null
-      ? null
-      : DateTime.parse(json['endTime'] as String),
   plannedDuration: Duration(
     microseconds: (json['plannedDuration'] as num).toInt(),
   ),
@@ -21,9 +18,12 @@ PomodoroSessionModel _$PomodoroSessionModelFromJson(
     microseconds: (json['actualDuration'] as num).toInt(),
   ),
   type: $enumDecode(_$SessionTypeEnumMap, json['type']),
-  associatedTaskId: json['associatedTaskId'] as String?,
   completed: json['completed'] as bool,
   createdAt: DateTime.parse(json['createdAt'] as String),
+  endTime: json['endTime'] == null
+      ? null
+      : DateTime.parse(json['endTime'] as String),
+  associatedTaskId: json['associatedTaskId'] as String?,
 );
 
 Map<String, dynamic> _$PomodoroSessionModelToJson(

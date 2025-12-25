@@ -2,15 +2,17 @@ import 'dart:convert';
 
 import 'package:prvin/core/database/database_helper.dart';
 import 'package:prvin/core/error/failures.dart';
-import 'package:prvin/features/tasks/data/models/task_model.dart';
+import 'package:prvin/features/task_management/data/models/task_model.dart';
+import 'package:prvin/features/task_management/domain/entities/task.dart'
+    as entities;
 import 'package:sqflite/sqflite.dart';
 
 /// 任务本地数据源接口
 abstract class TaskLocalDataSource {
   Future<List<TaskModel>> getAllTasks();
   Future<List<TaskModel>> getTasksForDate(DateTime date);
-  Future<List<TaskModel>> getTasksByStatus(TaskStatus status);
-  Future<List<TaskModel>> getTasksByCategory(TaskCategory category);
+  Future<List<TaskModel>> getTasksByStatus(entities.TaskStatus status);
+  Future<List<TaskModel>> getTasksByCategory(entities.TaskCategory category);
   Future<TaskModel?> getTaskById(String id);
   Future<String> createTask(TaskModel task);
   Future<void> updateTask(TaskModel task);
@@ -21,7 +23,6 @@ abstract class TaskLocalDataSource {
 
 /// 任务本地数据源实现
 class TaskLocalDataSourceImpl implements TaskLocalDataSource {
-
   TaskLocalDataSourceImpl(this._databaseHelper);
   final DatabaseHelper _databaseHelper;
 
@@ -60,7 +61,7 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
   }
 
   @override
-  Future<List<TaskModel>> getTasksByStatus(TaskStatus status) async {
+  Future<List<TaskModel>> getTasksByStatus(entities.TaskStatus status) async {
     try {
       final db = await _databaseHelper.database;
       final maps = await db.query(
@@ -76,7 +77,9 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
   }
 
   @override
-  Future<List<TaskModel>> getTasksByCategory(TaskCategory category) async {
+  Future<List<TaskModel>> getTasksByCategory(
+    entities.TaskCategory category,
+  ) async {
     try {
       final db = await _databaseHelper.database;
       final maps = await db.query(
@@ -193,7 +196,7 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
       description: map['description'] as String?,
       startTime: DateTime.fromMillisecondsSinceEpoch(map['start_time'] as int),
       endTime: DateTime.fromMillisecondsSinceEpoch(map['end_time'] as int),
-      tags: List<String>.from(jsonDecode(map['tags'] as String)),
+      tags: List<String>.from(jsonDecode(map['tags'] as String) as List),
       priority: TaskPriority.values.firstWhere(
         (e) => e.name == map['priority'],
         orElse: () => TaskPriority.medium,

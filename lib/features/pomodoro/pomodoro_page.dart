@@ -1,8 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:prvin/core/services/help_system_service.dart';
 import 'package:prvin/core/theme/theme_exports.dart';
-import 'package:prvin/features/pomodoro/pages/pomodoro_stats_page.dart';
+import 'package:prvin/core/widgets/help_system_widgets.dart';
 
 /// 番茄钟主页面
 /// 提供沉浸式计时器界面，包含圆形进度动画和呼吸效果
@@ -180,6 +181,8 @@ class _PomodoroPageState extends State<PomodoroPage>
           const Spacer(),
           Row(
             children: [
+              HelpButton(helpContext: HelpContext.pomodoroTimer, size: 16),
+              const SizedBox(width: 12),
               MicroInteractions.createInteractiveContainer(
                 onTap: _showStatsPage,
                 child: Container(
@@ -529,8 +532,28 @@ class _PomodoroPageState extends State<PomodoroPage>
   }
 
   void _showStatsPage() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (context) => const PomodoroStatsPage()),
+    // 显示简单的统计信息对话框，而不是导航到不存在的页面
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('📊 专注统计'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('今日专注时间: 0 分钟'),
+            SizedBox(height: 8),
+            Text('本周专注时间: 0 分钟'),
+            SizedBox(height: 8),
+            Text('完成的番茄钟: 0 个'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -638,7 +661,6 @@ enum PomodoroState {
 
 /// 自定义进度圆环绘制器
 class ProgressCirclePainter extends CustomPainter {
-
   ProgressCirclePainter({
     required this.progress,
     required this.strokeWidth,

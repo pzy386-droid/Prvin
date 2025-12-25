@@ -1,9 +1,9 @@
-import 'package:flutter/widget_previews.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'dart:ui';
 
-import 'custom_previews.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
+import 'package:prvin/previews/custom_previews.dart';
 
 /// 任务创建对话框预览
 @PrvinPreview(name: '任务创建对话框', group: '对话框组件', size: Size(400, 600))

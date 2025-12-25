@@ -2,18 +2,19 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-
+import 'package:prvin/features/ai/domain/services/ai_suggestion_service.dart';
+import 'package:prvin/features/task_management/data/repositories/task_repository_impl.dart';
 import 'package:prvin/features/task_management/domain/entities/task.dart';
 import 'package:prvin/features/task_management/domain/repositories/task_repository.dart';
 import 'package:prvin/features/task_management/domain/usecases/task_usecases.dart';
-import 'package:prvin/features/task_management/data/repositories/task_repository_impl.dart';
 
 part 'task_event.dart';
 part 'task_state.dart';
 
 /// 任务管理BLoC
 class TaskBloc extends Bloc<TaskEvent, TaskState> {
-  TaskBloc(this._taskUseCases) : super(const TaskState()) {
+  TaskBloc(this._taskUseCases, [this._aiSuggestionService])
+    : super(const TaskState()) {
     on<TaskLoadRequested>(_onTaskLoadRequested);
     on<TaskCreateRequested>(_onTaskCreateRequested);
     on<TaskUpdateRequested>(_onTaskUpdateRequested);
@@ -22,12 +23,18 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     on<TaskSearchRequested>(_onTaskSearchRequested);
     on<TaskFilterChanged>(_onTaskFilterChanged);
     on<TaskDateChanged>(_onTaskDateChanged);
+    on<TaskAISuggestionsRequested>(_onTaskAISuggestionsRequested);
+    on<TaskOptimizationSuggestionsRequested>(
+      _onTaskOptimizationSuggestionsRequested,
+    );
+    on<TaskAISuggestionsCleared>(_onTaskAISuggestionsCleared);
 
     // 立即加载初始数据
     add(const TaskLoadRequested());
   }
 
   final TaskUseCases _taskUseCases;
+  final AISuggestionService? _aiSuggestionService;
   StreamSubscription<List<Task>>? _taskSubscription;
 
   /// 获取仓库实例（用于特殊操作）
@@ -236,6 +243,65 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   ) async {
     emit(state.copyWith(selectedDate: event.date));
     add(const TaskLoadRequested());
+  }
+
+  /// 获取AI任务建议
+  Future<void> _onTaskAISuggestionsRequested(
+    TaskAISuggestionsRequested event,
+    Emitter<TaskState> emit,
+  ) async {
+    if (_aiSuggestionService == null) return;
+
+    emit(state.copyWith(isLoadingAISuggestions: true));
+
+    try {
+      final suggestions = await _aiSuggestionService
+          .getTaskCreationSuggestions(event.taskTitle);
+
+      emit(
+        state.copyWith(
+          aiSuggestions: suggestions,
+          isLoadingAISuggestions: false,
+        ),
+      );
+    } catch (error) {
+      emit(
+        state.copyWith(
+          isLoadingAISuggestions: false,
+          errorMessage: '获取AI建议失败: $error',
+        ),
+      );
+    }
+  }
+
+  /// 获取任务优化建议
+  Future<void> _onTaskOptimizationSuggestionsRequested(
+    TaskOptimizationSuggestionsRequested event,
+    Emitter<TaskState> emit,
+  ) async {
+    if (_aiSuggestionService == null) return;
+
+    try {
+      final suggestions = await _aiSuggestionService
+          .getTaskOptimizationSuggestions(state.tasks);
+
+      emit(state.copyWith(optimizationSuggestions: suggestions));
+    } catch (error) {
+      emit(state.copyWith(errorMessage: '获取优化建议失败: $error'));
+    }
+  }
+
+  /// 清除AI建议
+  Future<void> _onTaskAISuggestionsCleared(
+    TaskAISuggestionsCleared event,
+    Emitter<TaskState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        optimizationSuggestions: [],
+        isLoadingAISuggestions: false,
+      ),
+    );
   }
 
   /// 应用过滤器

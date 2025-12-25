@@ -3,14 +3,20 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:prvin/core/services/help_system_service.dart';
+import 'package:prvin/core/widgets/help_system_widgets.dart';
 
 import 'package:prvin/features/task_management/domain/entities/task.dart';
 import 'package:prvin/features/task_management/presentation/bloc/task_bloc.dart';
 
 /// 任务创建对话框
+///
+/// 提供优雅的任务创建界面，支持时间选择、优先级设置、分类选择等功能
+/// 包含改进的错误处理和用户反馈机制
 class TaskCreationDialog extends StatefulWidget {
   const TaskCreationDialog({super.key, this.initialDate});
 
+  /// 初始日期，用于设置任务的默认开始时间
   final DateTime? initialDate;
 
   @override
@@ -25,10 +31,12 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
   late Animation<double> _fadeAnimation;
 
   final _titleController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   late DateTime _startTime;
   late DateTime _endTime;
   TaskPriority _priority = TaskPriority.medium;
   TaskCategory _category = TaskCategory.other;
+  bool _isValidating = false;
 
   @override
   void initState() {
@@ -152,20 +160,20 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.95),
-            Colors.white.withOpacity(0.85),
+            Colors.white.withValues(alpha: 0.95),
+            Colors.white.withValues(alpha: 0.85),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4FC3F7).withOpacity(0.2),
+            color: const Color(0xFF4FC3F7).withValues(alpha: 0.2),
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -175,24 +183,27 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
         borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 16),
-                _buildTitleField(),
-                const SizedBox(height: 12),
-                _buildTimeSelector(),
-                const SizedBox(height: 12),
-                _buildPrioritySelector(),
-                const SizedBox(height: 12),
-                _buildCategorySelector(),
-                const SizedBox(height: 16),
-                _buildButtons(),
-              ],
+          child: Form(
+            key: _formKey,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 16),
+                  _buildTitleField(),
+                  const SizedBox(height: 12),
+                  _buildTimeSelector(),
+                  const SizedBox(height: 12),
+                  _buildPrioritySelector(),
+                  const SizedBox(height: 12),
+                  _buildCategorySelector(),
+                  const SizedBox(height: 16),
+                  _buildButtons(),
+                ],
+              ),
             ),
           ),
         ),
@@ -224,13 +235,15 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
           ),
         ),
         const Spacer(),
+        HelpButton(helpContext: HelpContext.taskCreation, size: 16),
+        const SizedBox(width: 8),
         GestureDetector(
           onTap: _closeWithAnimation,
           child: Container(
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: const Color(0xFF0288D1).withOpacity(0.1),
+              color: const Color(0xFF0288D1).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: const Icon(
@@ -245,18 +258,27 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
   }
 
   Widget _buildTitleField() {
-    return TextField(
+    return TextFormField(
       controller: _titleController,
       autofocus: true,
       style: const TextStyle(fontSize: 14),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return '请输入任务内容';
+        }
+        if (value.trim().length > 100) {
+          return '任务内容不能超过100个字符';
+        }
+        return null;
+      },
       decoration: InputDecoration(
         hintText: '输入任务内容...',
         hintStyle: TextStyle(
-          color: const Color(0xFF0288D1).withOpacity(0.5),
+          color: const Color(0xFF0288D1).withValues(alpha: 0.5),
           fontSize: 14,
         ),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.5),
+        fillColor: Colors.white.withValues(alpha: 0.5),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 10,
@@ -264,18 +286,26 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(
-            color: const Color(0xFF4FC3F7).withOpacity(0.3),
+            color: const Color(0xFF4FC3F7).withValues(alpha: 0.3),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(
-            color: const Color(0xFF4FC3F7).withOpacity(0.3),
+            color: const Color(0xFF4FC3F7).withValues(alpha: 0.3),
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: Color(0xFF4FC3F7), width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.red),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.red, width: 2),
         ),
       ),
     );
@@ -314,8 +344,10 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.5),
-          border: Border.all(color: const Color(0xFF4FC3F7).withOpacity(0.3)),
+          color: Colors.white.withValues(alpha: 0.5),
+          border: Border.all(
+            color: const Color(0xFF4FC3F7).withValues(alpha: 0.3),
+          ),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -325,7 +357,7 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
               label,
               style: TextStyle(
                 fontSize: 10,
-                color: const Color(0xFF0288D1).withOpacity(0.7),
+                color: const Color(0xFF0288D1).withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 2),
@@ -352,7 +384,7 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
           '优先级',
           style: TextStyle(
             fontSize: 10,
-            color: const Color(0xFF0288D1).withOpacity(0.7),
+            color: const Color(0xFF0288D1).withValues(alpha: 0.7),
           ),
         ),
         const SizedBox(height: 6),
@@ -369,13 +401,13 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFF4FC3F7).withOpacity(0.2)
-                          : Colors.white.withOpacity(0.3),
+                          ? const Color(0xFF4FC3F7).withValues(alpha: 0.2)
+                          : Colors.white.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                         color: isSelected
                             ? const Color(0xFF4FC3F7)
-                            : const Color(0xFF4FC3F7).withOpacity(0.2),
+                            : const Color(0xFF4FC3F7).withValues(alpha: 0.2),
                       ),
                     ),
                     child: Text(
@@ -407,7 +439,7 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
           '分类',
           style: TextStyle(
             fontSize: 10,
-            color: const Color(0xFF0288D1).withOpacity(0.7),
+            color: const Color(0xFF0288D1).withValues(alpha: 0.7),
           ),
         ),
         const SizedBox(height: 6),
@@ -423,13 +455,13 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFF4FC3F7).withOpacity(0.2)
-                      : Colors.white.withOpacity(0.3),
+                      ? const Color(0xFF4FC3F7).withValues(alpha: 0.2)
+                      : Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: isSelected
                         ? const Color(0xFF4FC3F7)
-                        : const Color(0xFF4FC3F7).withOpacity(0.2),
+                        : const Color(0xFF4FC3F7).withValues(alpha: 0.2),
                   ),
                 ),
                 child: Text(
@@ -457,7 +489,9 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
           children: [
             Expanded(
               child: TextButton(
-                onPressed: isLoading ? null : _closeWithAnimation,
+                onPressed: isLoading || _isValidating
+                    ? null
+                    : _closeWithAnimation,
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   shape: RoundedRectangleBorder(
@@ -477,7 +511,7 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
             const SizedBox(width: 8),
             Expanded(
               child: ElevatedButton(
-                onPressed: isLoading ? null : _saveTask,
+                onPressed: isLoading || _isValidating ? null : _saveTask,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   backgroundColor: const Color(0xFF4FC3F7),
@@ -487,7 +521,7 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
                   ),
                   elevation: 0,
                 ),
-                child: isLoading
+                child: isLoading || _isValidating
                     ? const SizedBox(
                         width: 12,
                         height: 12,
@@ -556,31 +590,25 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
   }
 
   void _saveTask() {
-    if (_titleController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('请输入任务内容'),
-          backgroundColor: Colors.orange,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+    setState(() => _isValidating = true);
+
+    // 使用Form验证
+    if (!_formKey.currentState!.validate()) {
+      setState(() => _isValidating = false);
       return;
     }
 
+    // 验证时间逻辑
     if (_startTime.isAfter(_endTime)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('开始时间不能晚于结束时间'),
-          backgroundColor: Colors.orange,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+      _showErrorSnackBar('开始时间不能晚于结束时间');
+      setState(() => _isValidating = false);
+      return;
+    }
+
+    // 验证时间间隔（至少15分钟）
+    if (_endTime.difference(_startTime).inMinutes < 15) {
+      _showErrorSnackBar('任务时长至少需要15分钟');
+      setState(() => _isValidating = false);
       return;
     }
 
@@ -593,6 +621,19 @@ class _TaskCreationDialogState extends State<TaskCreationDialog>
     );
 
     context.read<TaskBloc>().add(TaskCreateRequested(request));
+    setState(() => _isValidating = false);
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.orange,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   void _closeWithAnimation() {

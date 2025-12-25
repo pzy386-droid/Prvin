@@ -1,0 +1,152 @@
+# Prvin AI智能日历 - GitHub Pages配置
+
+# 站点信息
+title: "Prvin AI智能日历"
+description: "现代化跨平台智能日程管理应用 - 集成AI分析、番茄钟专注、一键语言切换等功能"
+url: "https://your-username.github.io"
+baseurl: "/prvin-ai-calendar"
+
+# 作者信息
+author:
+  name: "Prvin Team"
+  email: "your-email@example.com"
+  url: "https://github.com/your-username"
+
+# 仓库信息
+repository: "your-username/prvin-ai-calendar"
+github_username: "your-username"
+
+# 构建设置
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# 插件
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# 排除文件
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - .dart_tool/
+  - build/
+  - .flutter-plugins
+  - .flutter-plugins-dependencies
+
+# 包含文件
+include:
+  - _pages
+
+# 集合配置
+collections:
+  pages:
+    output: true
+    permalink: /:name/
+
+# 默认设置
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      author: "Prvin Team"
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"
+
+# SEO设置
+lang: "zh-CN"
+timezone: "Asia/Shanghai"
+
+# 社交媒体
+social:
+  name: "Prvin AI智能日历"
+  links:
+    - "https://github.com/your-username/prvin-ai-calendar"
+
+# Google Analytics (可选)
+# google_analytics: "G-XXXXXXXXXX"
+
+# 网站验证 (可选)
+# google_site_verification: "your-verification-code"
+# bing_site_verification: "your-verification-code"
+
+# 评论系统 (可选)
+# disqus:
+#   shortname: "your-disqus-shortname"
+
+# 分页设置
+paginate: 10
+paginate_path: "/page:num/"
+
+# 压缩HTML
+compress_html:
+  clippings: all
+  comments: all
+  endings: all
+  startings: []
+  blanklines: false
+  profile: false
+
+# 自定义变量
+app:
+  name: "Prvin AI智能日历"
+  version: "1.0.0"
+  demo_url: "https://your-username.github.io/prvin-ai-calendar/"
+  github_url: "https://github.com/your-username/prvin-ai-calendar"
+  download_url: "https://github.com/your-username/prvin-ai-calendar/releases"
+  
+features:
+  - name: "智能日历系统"
+    icon: "📅"
+    description: "多视图模式、任务可视化、拖拽交互"
+  - name: "任务管理系统" 
+    icon: "✅"
+    description: "完整CRUD、智能分类、时间冲突检测"
+  - name: "番茄钟专注"
+    icon: "🍅"
+    description: "沉浸式计时、专注统计、成就系统"
+  - name: "AI智能分析"
+    icon: "🤖"
+    description: "工作模式分析、效率建议、智能推荐"
+  - name: "一键语言切换"
+    icon: "🌐"
+    description: "中英文无缝切换、状态保持"
+  - name: "跨设备同步"
+    icon: "🔄"
+    description: "实时同步、离线支持、冲突解决"
+
+tech_stack:
+  - "Flutter 3.10+"
+  - "Dart"
+  - "BLoC Pattern"
+  - "SQLite"
+  - "PWA"
+  - "Material Design"
+  - "Firebase"
+  - "GitHub Actions"
+
+platforms:
+  - name: "Web浏览器"
+    icon: "🌐"
+    description: "Chrome 88+, Firefox 85+, Safari 14+"
+  - name: "PWA应用"
+    icon: "📱"
+    description: "可安装为原生应用，离线支持"
+  - name: "Android"
+    icon: "🤖"
+    description: "Android 5.0+ (API 21)"
+  - name: "iOS"
+    icon: "🍎"
+    description: "iOS 11.0+ (计划中)"

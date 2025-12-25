@@ -1,0 +1,120 @@
+# Prvin AI智能日历 - 发布配置文件
+# 用于管理GitHub发布、版本控制和部署设置
+
+project:
+  name: "Prvin AI智能日历"
+  description: "现代化跨平台智能日程管理应用"
+  repository: "https://github.com/pzy386-droid/Prvin"
+  homepage: "https://pzy386-droid.github.io/Prvin"
+  
+version:
+  current: "1.0.0"
+  build_number: 1
+  
+release:
+  # 发布分支策略
+  branches:
+    main: "main"           # 主分支，稳定版本
+    develop: "develop"     # 开发分支，新功能集成
+    release: "release/*"   # 发布分支，版本准备
+    hotfix: "hotfix/*"     # 热修复分支，紧急修复
+  
+  # 版本标签格式
+  tag_format: "v{version}"
+  
+  # 发布类型
+  types:
+    - major    # 主版本更新 (1.0.0 -> 2.0.0)
+    - minor    # 次版本更新 (1.0.0 -> 1.1.0)
+    - patch    # 补丁更新 (1.0.0 -> 1.0.1)
+    - beta     # 测试版本 (1.0.0-beta.1)
+    - alpha    # 内测版本 (1.0.0-alpha.1)
+
+platforms:
+  # 移动端平台
+  android:
+    enabled: true
+    build_type: "appbundle"  # apk 或 appbundle
+    signing: true
+    
+  ios:
+    enabled: true
+    build_type: "ipa"
+    signing: true
+    
+  # Web平台
+  web:
+    enabled: true
+    build_type: "release"
+    pwa: true
+    github_pages: true
+    
+  # 桌面平台 (未来支持)
+  windows:
+    enabled: false
+    
+  macos:
+    enabled: false
+    
+  linux:
+    enabled: false
+
+deployment:
+  # GitHub Pages配置
+  github_pages:
+    branch: "gh-pages"
+    directory: "build/web"
+    custom_domain: ""  # 可选：自定义域名
+    
+  # 应用商店配置
+  app_stores:
+    google_play:
+      enabled: false  # 暂未配置
+      track: "internal"  # internal, alpha, beta, production
+      
+    app_store:
+      enabled: false  # 暂未配置
+      
+  # 其他部署目标
+  firebase_hosting:
+    enabled: false
+    
+  netlify:
+    enabled: false
+
+ci_cd:
+  # GitHub Actions工作流
+  workflows:
+    - name: "build_and_test"
+      trigger: ["push", "pull_request"]
+      
+    - name: "deploy_web"
+      trigger: ["release"]
+      
+    - name: "build_mobile"
+      trigger: ["release"]
+      
+  # 自动化任务
+  automation:
+    version_bump: true      # 自动版本号递增
+    changelog_generation: true  # 自动生成更新日志
+    release_notes: true     # 自动生成发布说明
+    
+quality:
+  # 代码质量检查
+  checks:
+    - flutter_analyze
+    - flutter_test
+    - coverage_check
+    
+  # 最低要求
+  requirements:
+    test_coverage: 80      # 最低测试覆盖率
+    analysis_score: 90     # 最低分析得分
+    
+notifications:
+  # 发布通知
+  channels:
+    - type: "github_release"
+    - type: "email"
+      recipients: ["your-email@example.com"]

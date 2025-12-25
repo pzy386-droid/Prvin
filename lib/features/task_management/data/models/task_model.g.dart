@@ -9,7 +9,6 @@ part of 'task_model.dart';
 TaskModel _$TaskModelFromJson(Map<String, dynamic> json) => TaskModel(
   id: json['id'] as String,
   title: json['title'] as String,
-  description: json['description'] as String?,
   startTime: DateTime.parse(json['startTime'] as String),
   endTime: DateTime.parse(json['endTime'] as String),
   tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
@@ -18,6 +17,7 @@ TaskModel _$TaskModelFromJson(Map<String, dynamic> json) => TaskModel(
   category: $enumDecode(_$TaskCategoryEnumMap, json['category']),
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
+  description: json['description'] as String?,
 );
 
 Map<String, dynamic> _$TaskModelToJson(TaskModel instance) => <String, dynamic>{

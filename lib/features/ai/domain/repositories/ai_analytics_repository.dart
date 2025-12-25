@@ -1,4 +1,5 @@
 import 'package:prvin/features/ai/domain/entities/analytics_data.dart';
+import 'package:prvin/features/task_management/domain/entities/task.dart';
 
 /// AI分析仓库接口
 abstract class AIAnalyticsRepository {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prvin/features/pomodoro/models/pomodoro_session.dart';
+import 'package:prvin/features/pomodoro/domain/entities/pomodoro_session.dart';
 import 'package:prvin/features/pomodoro/widgets/stats_chart.dart';
 
 void main() {

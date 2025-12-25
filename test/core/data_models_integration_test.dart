@@ -2,7 +2,7 @@ import 'package:faker/faker.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prvin/features/pomodoro/data/models/pomodoro_session_model.dart';
 import 'package:prvin/features/sync/data/models/calendar_event_model.dart';
-import 'package:prvin/features/tasks/data/models/task_model.dart';
+import 'package:prvin/features/task_management/data/models/task_model.dart';
 
 void main() {
   group('Data Models Integration Tests', () {

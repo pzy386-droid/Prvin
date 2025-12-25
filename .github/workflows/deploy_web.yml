@@ -1,0 +1,234 @@
+name: 🚀 部署Web版本
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+# 设置权限以允许部署到GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 只允许一个并发部署，跳过正在运行的部署队列中的运行
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # 构建Web版本
+  build:
+    name: 🔨 构建Web版本
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 🐦 设置Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.10.4'
+        channel: 'stable'
+        
+    - name: 📦 获取依赖
+      run: flutter pub get
+      
+    - name: 🧪 运行测试
+      run: flutter test
+      
+    - name: 🌐 启用Web支持
+      run: flutter config --enable-web
+      
+    - name: 🔨 构建Web发布版本
+      run: flutter build web --release --web-renderer html
+      
+    - name: 📝 创建构建信息
+      run: |
+        echo "# Prvin AI智能日历 - Web版本" > build/web/BUILD_INFO.md
+        echo "" >> build/web/BUILD_INFO.md
+        echo "## 构建信息" >> build/web/BUILD_INFO.md
+        echo "- **构建时间**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> build/web/BUILD_INFO.md
+        echo "- **Git提交**: ${{ github.sha }}" >> build/web/BUILD_INFO.md
+        echo "- **Git分支**: ${{ github.ref_name }}" >> build/web/BUILD_INFO.md
+        echo "- **Flutter版本**: $(flutter --version | head -n 1)" >> build/web/BUILD_INFO.md
+        echo "- **构建环境**: GitHub Actions" >> build/web/BUILD_INFO.md
+        echo "" >> build/web/BUILD_INFO.md
+        echo "## 访问地址" >> build/web/BUILD_INFO.md
+        echo "- **主页**: https://pzy386-droid.github.io/Prvin/" >> build/web/BUILD_INFO.md
+        echo "- **仓库**: https://github.com/pzy386-droid/Prvin" >> build/web/BUILD_INFO.md
+        
+    - name: 📄 创建404页面
+      run: cp build/web/index.html build/web/404.html
+      
+    - name: 🔧 配置GitHub Pages
+      run: |
+        # 创建.nojekyll文件以禁用Jekyll处理
+        touch build/web/.nojekyll
+        
+        # 创建CNAME文件 (如果有自定义域名)
+        # echo "your-domain.com" > build/web/CNAME
+        
+    - name: 📤 上传构建产物
+      uses: actions/upload-artifact@v3
+      with:
+        name: web-build-release
+        path: build/web
+        retention-days: 30
+        
+    - name: 🔧 设置Pages
+      uses: actions/configure-pages@v3
+      
+    - name: 📤 上传到Pages
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: build/web
+
+  # 部署到GitHub Pages
+  deploy:
+    name: 🚀 部署到GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - name: 🚀 部署到GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
+      
+    - name: 📢 部署成功通知
+      run: |
+        echo "✅ Web版本部署成功！"
+        echo "🌐 访问地址: ${{ steps.deployment.outputs.page_url }}"
+        echo "📱 可以在移动设备上安装为PWA应用"
+
+  # 测试部署的网站
+  test-deployment:
+    name: 🧪 测试部署
+    runs-on: ubuntu-latest
+    needs: deploy
+    
+    steps:
+    - name: 🌐 测试网站可访问性
+      run: |
+        # 等待部署完成
+        sleep 30
+        
+        # 测试主页是否可访问
+        SITE_URL="${{ needs.deploy.outputs.page_url }}"
+        echo "测试网站: $SITE_URL"
+        
+        # 检查HTTP状态码
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$SITE_URL")
+        if [ "$STATUS" -eq 200 ]; then
+          echo "✅ 网站可正常访问 (HTTP $STATUS)"
+        else
+          echo "❌ 网站访问失败 (HTTP $STATUS)"
+          exit 1
+        fi
+        
+        # 检查关键内容
+        CONTENT=$(curl -s "$SITE_URL")
+        if echo "$CONTENT" | grep -q "Prvin"; then
+          echo "✅ 网站内容正常"
+        else
+          echo "❌ 网站内容异常"
+          exit 1
+        fi
+        
+    - name: 📱 PWA功能测试
+      run: |
+        echo "🔍 检查PWA配置..."
+        SITE_URL="${{ needs.deploy.outputs.page_url }}"
+        
+        # 检查manifest.json
+        MANIFEST_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${SITE_URL}manifest.json")
+        if [ "$MANIFEST_STATUS" -eq 200 ]; then
+          echo "✅ PWA manifest可访问"
+        else
+          echo "⚠️  PWA manifest不可访问 (HTTP $MANIFEST_STATUS)"
+        fi
+        
+        # 检查service worker
+        SW_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${SITE_URL}sw.js")
+        if [ "$SW_STATUS" -eq 200 ]; then
+          echo "✅ Service Worker可访问"
+        else
+          echo "⚠️  Service Worker不可访问 (HTTP $SW_STATUS)"
+        fi
+
+  # 创建GitHub Release (仅在标签推送时)
+  create-release:
+    name: 📦 创建Release
+    runs-on: ubuntu-latest
+    needs: [deploy, test-deployment]
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: 📥 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 📥 下载构建产物
+      uses: actions/download-artifact@v3
+      with:
+        name: web-build-release
+        path: web-build
+        
+    - name: 📦 打包Web版本
+      run: |
+        cd web-build
+        zip -r ../prvin-web-${{ github.ref_name }}.zip .
+        cd ..
+        
+    - name: 📝 生成Release说明
+      run: |
+        echo "# Prvin AI智能日历 ${{ github.ref_name }}" > release_notes.md
+        echo "" >> release_notes.md
+        echo "## 🌐 在线体验" >> release_notes.md
+        echo "- **Web版本**: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> release_notes.md
+        echo "- **PWA安装**: 在支持的浏览器中可以安装为原生应用" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "## 📱 支持的平台" >> release_notes.md
+        echo "- **Web浏览器**: Chrome 88+, Firefox 85+, Safari 14+, Edge 88+" >> release_notes.md
+        echo "- **移动设备**: 支持PWA安装，提供原生应用体验" >> release_notes.md
+        echo "- **桌面设备**: 支持键盘快捷键和桌面端优化" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "## 🚀 主要功能" >> release_notes.md
+        echo "- 📅 智能日历系统 - 多视图模式，任务可视化" >> release_notes.md
+        echo "- ✅ 任务管理系统 - 完整CRUD，智能分类" >> release_notes.md
+        echo "- 🍅 番茄钟专注模式 - 沉浸式计时，统计分析" >> release_notes.md
+        echo "- 🤖 AI智能分析 - 工作模式分析，效率建议" >> release_notes.md
+        echo "- 🌐 一键语言切换 - 中英文无缝切换" >> release_notes.md
+        echo "- 🔄 数据同步 - 跨设备数据同步" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "## 📥 下载" >> release_notes.md
+        echo "- **Web版本**: 直接访问上方链接，无需下载" >> release_notes.md
+        echo "- **离线包**: 下载下方的zip文件，解压后打开index.html" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "## 🔧 技术信息" >> release_notes.md
+        echo "- **构建时间**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> release_notes.md
+        echo "- **Git提交**: ${{ github.sha }}" >> release_notes.md
+        echo "- **Flutter版本**: 3.10.4" >> release_notes.md
+        
+    - name: 🏷️ 创建Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Prvin AI智能日历 ${{ github.ref_name }}
+        body_path: release_notes.md
+        files: |
+          prvin-web-${{ github.ref_name }}.zip
+        draft: false
+        prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: 📢 Release创建成功
+      run: |
+        echo "✅ GitHub Release创建成功！"
+        echo "🏷️ 版本: ${{ github.ref_name }}"
+        echo "🌐 Web版本: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+        echo "📦 Release页面: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"

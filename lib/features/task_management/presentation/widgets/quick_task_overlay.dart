@@ -8,10 +8,16 @@ import 'package:prvin/features/task_management/domain/entities/task.dart';
 import 'package:prvin/features/task_management/presentation/bloc/task_bloc.dart';
 
 /// 右下角快速创建任务浮层
+///
+/// 提供快速任务创建功能，支持拖拽交互和优化的用户体验
+/// 包含改进的表单验证和错误处理机制
 class QuickTaskOverlay extends StatefulWidget {
   const QuickTaskOverlay({required this.onClose, super.key, this.initialDate});
 
+  /// 初始日期，用于设置任务的默认开始时间
   final DateTime? initialDate;
+
+  /// 关闭回调函数
   final VoidCallback onClose;
 
   @override
@@ -27,10 +33,12 @@ class _QuickTaskOverlayState extends State<QuickTaskOverlay>
   late Animation<double> _fadeAnimation;
 
   final _titleController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   late DateTime _startTime;
   late DateTime _endTime;
   TaskPriority _priority = TaskPriority.medium;
   TaskCategory _category = TaskCategory.other;
+  bool _isValidating = false;
 
   @override
   void initState() {
@@ -188,24 +196,27 @@ class _QuickTaskOverlayState extends State<QuickTaskOverlay>
         borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 16),
-                _buildTitleField(),
-                const SizedBox(height: 12),
-                _buildTimeSelector(),
-                const SizedBox(height: 12),
-                _buildPrioritySelector(),
-                const SizedBox(height: 12),
-                _buildCategorySelector(),
-                const SizedBox(height: 16),
-                _buildButtons(),
-              ],
+          child: Form(
+            key: _formKey,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 16),
+                  _buildTitleField(),
+                  const SizedBox(height: 12),
+                  _buildTimeSelector(),
+                  const SizedBox(height: 12),
+                  _buildPrioritySelector(),
+                  const SizedBox(height: 12),
+                  _buildCategorySelector(),
+                  const SizedBox(height: 16),
+                  _buildButtons(),
+                ],
+              ),
             ),
           ),
         ),
@@ -258,10 +269,19 @@ class _QuickTaskOverlayState extends State<QuickTaskOverlay>
   }
 
   Widget _buildTitleField() {
-    return TextField(
+    return TextFormField(
       controller: _titleController,
       autofocus: true,
       style: const TextStyle(fontSize: 14),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return '请输入任务内容';
+        }
+        if (value.trim().length > 100) {
+          return '任务内容不能超过100个字符';
+        }
+        return null;
+      },
       decoration: InputDecoration(
         hintText: '输入任务内容...',
         hintStyle: TextStyle(
@@ -289,6 +309,14 @@ class _QuickTaskOverlayState extends State<QuickTaskOverlay>
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: Color(0xFF4FC3F7), width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.red),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.red, width: 2),
         ),
       ),
     );
@@ -471,7 +499,9 @@ class _QuickTaskOverlayState extends State<QuickTaskOverlay>
           children: [
             Expanded(
               child: TextButton(
-                onPressed: isLoading ? null : _closeWithAnimation,
+                onPressed: isLoading || _isValidating
+                    ? null
+                    : _closeWithAnimation,
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   shape: RoundedRectangleBorder(
@@ -491,7 +521,7 @@ class _QuickTaskOverlayState extends State<QuickTaskOverlay>
             const SizedBox(width: 8),
             Expanded(
               child: ElevatedButton(
-                onPressed: isLoading ? null : _saveTask,
+                onPressed: isLoading || _isValidating ? null : _saveTask,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   backgroundColor: const Color(0xFF4FC3F7),
@@ -501,7 +531,7 @@ class _QuickTaskOverlayState extends State<QuickTaskOverlay>
                   ),
                   elevation: 0,
                 ),
-                child: isLoading
+                child: isLoading || _isValidating
                     ? const SizedBox(
                         width: 12,
                         height: 12,
@@ -531,7 +561,6 @@ class _QuickTaskOverlayState extends State<QuickTaskOverlay>
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(isStart ? _startTime : _endTime),
-      useRootNavigator: true, // 确保时间选择器在最顶层
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -562,31 +591,25 @@ class _QuickTaskOverlayState extends State<QuickTaskOverlay>
   }
 
   void _saveTask() {
-    if (_titleController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('请输入任务内容'),
-          backgroundColor: Colors.orange,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+    setState(() => _isValidating = true);
+
+    // 使用Form验证
+    if (!_formKey.currentState!.validate()) {
+      setState(() => _isValidating = false);
       return;
     }
 
+    // 验证时间逻辑
     if (_startTime.isAfter(_endTime)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('开始时间不能晚于结束时间'),
-          backgroundColor: Colors.orange,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+      _showErrorSnackBar('开始时间不能晚于结束时间');
+      setState(() => _isValidating = false);
+      return;
+    }
+
+    // 验证时间间隔（至少15分钟）
+    if (_endTime.difference(_startTime).inMinutes < 15) {
+      _showErrorSnackBar('任务时长至少需要15分钟');
+      setState(() => _isValidating = false);
       return;
     }
 
@@ -599,6 +622,19 @@ class _QuickTaskOverlayState extends State<QuickTaskOverlay>
     );
 
     context.read<TaskBloc>().add(TaskCreateRequested(request));
+    setState(() => _isValidating = false);
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.orange,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   void _closeWithAnimation() {

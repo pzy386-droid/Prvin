@@ -10,11 +10,14 @@
 /// - 任务组件: 任务卡片的各种状态预览
 /// - 日历组件: 日历相关UI组件预览
 /// - 对话框组件: 弹窗和表单组件预览
+/// - AI功能: AI分析和建议功能预览
+library;
 
+export 'ai_preview.dart';
+export 'calendar_preview.dart';
+export 'custom_previews.dart';
+export 'dialog_preview.dart';
 // 导入所有预览文件
 export 'task_card_preview.dart';
-export 'calendar_preview.dart';
-export 'dialog_preview.dart';
-export 'custom_previews.dart';
 
 // 如果需要添加新的预览文件，在这里导入即可

@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 功能讨论和建议
+    url: https://github.com/pzy386-droid/Prvin/discussions
+    about: 讨论新功能想法、分享使用经验、获取社区帮助
+  - name: 📚 查看文档
+    url: https://github.com/pzy386-droid/Prvin/blob/main/README.md
+    about: 查看项目文档、使用指南和常见问题解答
+  - name: 🌐 在线体验
+    url: https://pzy386-droid.github.io/Prvin/
+    about: 直接在浏览器中体验Prvin AI智能日历的完整功能
+  - name: 📱 下载应用
+    url: https://github.com/pzy386-droid/Prvin/releases
+    about: 下载最新版本的移动端应用和离线包
+  - name: 🎥 观看演示
+    url: https://pzy386-droid.github.io/Prvin/demo.html
+    about: 观看功能演示视频，了解应用的核心特性

@@ -1,16 +1,14 @@
 import 'dart:async';
 
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
-
 import 'package:prvin/features/task_management/domain/entities/task.dart';
+import 'package:sqflite/sqflite.dart';
 
 /// 数据库助手类
 class DatabaseHelper {
+  factory DatabaseHelper() => _instance;
 
   DatabaseHelper._internal();
-
-  factory DatabaseHelper() => _instance;
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
 
@@ -73,13 +71,20 @@ class DatabaseHelper {
       CREATE TABLE calendar_events (
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
+        description TEXT,
         start_time INTEGER NOT NULL,
         end_time INTEGER NOT NULL,
-        event_source TEXT NOT NULL,
+        source TEXT NOT NULL,
         external_id TEXT,
-        metadata TEXT,
+        is_all_day INTEGER NOT NULL DEFAULT 0,
+        location TEXT,
+        attendees TEXT NOT NULL DEFAULT '[]',
+        reminders TEXT NOT NULL DEFAULT '[]',
+        recurrence_rule TEXT,
+        metadata TEXT NOT NULL DEFAULT '{}',
         created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL
+        updated_at INTEGER NOT NULL,
+        last_sync_at INTEGER
       )
     ''');
 
@@ -136,12 +141,7 @@ class DatabaseHelper {
     final taskMap = task.toMap();
     taskMap['tags'] = task.tags.join(','); // 将标签列表转换为字符串
 
-    return db.update(
-      'tasks',
-      taskMap,
-      where: 'id = ?',
-      whereArgs: [task.id],
-    );
+    return db.update('tasks', taskMap, where: 'id = ?', whereArgs: [task.id]);
   }
 
   /// 删除任务
@@ -301,7 +301,7 @@ class DatabaseHelper {
       (end_time > ? AND end_time <= ?)
     ''';
 
-    var whereArgs = <dynamic>[
+    final whereArgs = <dynamic>[
       endTime.millisecondsSinceEpoch,
       startTime.millisecondsSinceEpoch,
       startTime.millisecondsSinceEpoch,
@@ -394,6 +394,15 @@ class DatabaseHelper {
     await db.delete('pomodoro_sessions');
     await db.delete('calendar_events');
     await db.delete('analytics_data');
+  }
+
+  /// 获取数据库信息
+  Future<Map<String, dynamic>> getDatabaseInfo() async {
+    final db = await database;
+    final version = await db.getVersion();
+    final path = db.path;
+
+    return {'version': version, 'path': path, 'isOpen': db.isOpen};
   }
 
   /// 关闭数据库

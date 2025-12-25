@@ -3,14 +3,18 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:prvin/core/localization/localization_exports.dart';
+import 'package:prvin/core/services/help_system_service.dart';
+import 'package:prvin/core/widgets/help_system_widgets.dart';
+import 'package:prvin/core/widgets/language_switcher.dart';
+import 'package:prvin/core/widgets/one_click_language_toggle_button.dart';
+import 'package:prvin/features/pomodoro/pomodoro_page.dart';
 import 'package:prvin/features/task_management/data/repositories/task_repository_impl.dart';
 import 'package:prvin/features/task_management/domain/entities/task.dart';
 import 'package:prvin/features/task_management/domain/usecases/task_usecases.dart';
 import 'package:prvin/features/task_management/presentation/bloc/task_bloc.dart';
 import 'package:prvin/features/task_management/presentation/pages/task_form_page.dart';
 import 'package:prvin/features/task_management/presentation/widgets/task_creation_dialog.dart';
-import 'package:prvin/features/pomodoro/pomodoro_page.dart';
 
 void main() {
   runApp(const IntegratedCalendarWithPomodoroApp());
@@ -32,13 +36,15 @@ class IntegratedCalendarWithPomodoroApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      home: BlocProvider(
-        create: (context) {
-          final repository = TaskRepositoryImpl();
-          final useCases = TaskUseCases(repository);
-          return TaskBloc(useCases); // 构造函数中已经发送初始加载事件
-        },
-        child: const IntegratedCalendarWithPomodoroPage(),
+      home: HelpSystemWidget(
+        child: BlocProvider(
+          create: (context) {
+            final repository = TaskRepositoryImpl();
+            final useCases = TaskUseCases(repository);
+            return TaskBloc(useCases); // 构造函数中已经发送初始加载事件
+          },
+          child: const IntegratedCalendarWithPomodoroPage(),
+        ),
       ),
     );
   }
@@ -81,6 +87,25 @@ class _IntegratedCalendarWithPomodoroPageState
     );
 
     _fadeController.forward();
+
+    // 初始化帮助系统
+    _initializeHelpSystem();
+  }
+
+  /// 初始化帮助系统
+  void _initializeHelpSystem() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      HelpSystemService.instance.initialize().then((_) {
+        // 检查是否需要显示首次引导
+        if (!HelpSystemService.instance.hasCompletedOnboarding) {
+          Future.delayed(const Duration(milliseconds: 1000), () {
+            if (mounted) {
+              HelpSystemService.instance.showOnboarding(context);
+            }
+          });
+        }
+      });
+    });
   }
 
   @override
@@ -159,16 +184,16 @@ class _IntegratedCalendarWithPomodoroPageState
               fontWeight: FontWeight.w500,
               fontSize: 11,
             ),
-            items: const [
+            items: [
               BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.calendar),
-                activeIcon: Icon(CupertinoIcons.calendar_today),
-                label: '日历',
+                icon: const Icon(CupertinoIcons.calendar),
+                activeIcon: const Icon(CupertinoIcons.calendar_today),
+                label: context.l10n('calendar', fallback: '日历'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.timer),
-                activeIcon: Icon(CupertinoIcons.timer_fill),
-                label: '专注',
+                icon: const Icon(CupertinoIcons.timer),
+                activeIcon: const Icon(CupertinoIcons.timer_fill),
+                label: context.l10n('focus', fallback: '专注'),
               ),
             ],
           ),
@@ -237,9 +262,19 @@ class _IntegratedCalendarWithPomodoroPageState
                   ),
                   _buildHeaderButton(
                     icon: CupertinoIcons.search,
-                    onTap: () => _showMessage('搜索功能开发中...'),
+                    onTap: () => _showMessage(
+                      context.l10n(
+                        'search_placeholder',
+                        fallback: '搜索功能开发中...',
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
+                  HelpButton(helpContext: HelpContext.calendarView, size: 18),
+                  const SizedBox(width: 12),
+                  // Temporarily disabled due to provider issues in demo
+                  // const OneClickLanguageToggleButton(),
+                  // const SizedBox(width: 12),
                   _buildHeaderButton(
                     icon: CupertinoIcons.calendar_today,
                     onTap: _goToToday,
@@ -317,7 +352,11 @@ class _IntegratedCalendarWithPomodoroPageState
             opacity: value,
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 40),
-              height: 580,
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.6,
+                minHeight: 300,
+                maxWidth: MediaQuery.of(context).size.width * 0.9,
+              ),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 gradient: LinearGradient(
@@ -365,7 +404,7 @@ class _IntegratedCalendarWithPomodoroPageState
                         const SizedBox(height: 14),
                         _buildWeekDays(),
                         const SizedBox(height: 12),
-                        _buildCalendarGrid(),
+                        Flexible(child: _buildCalendarGrid()),
                       ],
                     ),
                   ),
@@ -516,13 +555,18 @@ class _IntegratedCalendarWithPomodoroPageState
                 prevDayNumber,
               );
               days.add(
-                SizedBox(
-                  height: 60,
-                  child: _buildDateCell(
-                    prevDate,
-                    index,
-                    state.tasks,
-                    isOtherMonth: true,
+                Expanded(
+                  child: Container(
+                    constraints: const BoxConstraints(
+                      minHeight: 40,
+                      maxHeight: 80,
+                    ),
+                    child: _buildDateCell(
+                      prevDate,
+                      index,
+                      state.tasks,
+                      isOtherMonth: true,
+                    ),
                   ),
                 ),
               );
@@ -535,13 +579,18 @@ class _IntegratedCalendarWithPomodoroPageState
                 nextDayNumber,
               );
               days.add(
-                SizedBox(
-                  height: 60,
-                  child: _buildDateCell(
-                    nextDate,
-                    index,
-                    state.tasks,
-                    isOtherMonth: true,
+                Expanded(
+                  child: Container(
+                    constraints: const BoxConstraints(
+                      minHeight: 40,
+                      maxHeight: 80,
+                    ),
+                    child: _buildDateCell(
+                      nextDate,
+                      index,
+                      state.tasks,
+                      isOtherMonth: true,
+                    ),
                   ),
                 ),
               );
@@ -554,25 +603,30 @@ class _IntegratedCalendarWithPomodoroPageState
                 dayNumber,
               );
               days.add(
-                SizedBox(
-                  height: 60,
-                  child: _buildDateCell(date, index, state.tasks),
+                Expanded(
+                  child: Container(
+                    constraints: const BoxConstraints(
+                      minHeight: 40,
+                      maxHeight: 80,
+                    ),
+                    child: _buildDateCell(date, index, state.tasks),
+                  ),
                 ),
               );
             }
           }
 
-          weeks.add(
-            Row(children: days.map((day) => Expanded(child: day)).toList()),
-          );
+          weeks.add(Row(children: days));
         }
 
         return Column(
           children: weeks
               .map(
-                (week) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: week,
+                (week) => Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 1),
+                    child: week,
+                  ),
                 ),
               )
               .toList(),
@@ -676,10 +730,12 @@ class _IntegratedCalendarWithPomodoroPageState
               // 任务条 - 始终显示任务，不管是否为当前月份
               if (tasksOnDate.isNotEmpty)
                 Expanded(
-                  child: Column(
-                    children: tasksOnDate.take(3).map((task) {
-                      return _buildTaskBar(task, isSelected);
-                    }).toList(),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: tasksOnDate.take(2).map((task) {
+                        return _buildTaskBar(task, isSelected);
+                      }).toList(),
+                    ),
                   ),
                 ),
             ],
@@ -690,61 +746,62 @@ class _IntegratedCalendarWithPomodoroPageState
   }
 
   Widget _buildTaskBar(Task task, bool isSelected) {
-    return Container(
-      key: ValueKey('task_${task.id}'),
-      width: double.infinity,
-      height: 16,
-      margin: const EdgeInsets.only(bottom: 2),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          end: Alignment.centerRight,
-          colors: [
-            _getPriorityColor(task.priority).withOpacity(0.9),
-            _getPriorityColor(task.priority).withOpacity(0.7),
+    return Flexible(
+      child: Container(
+        key: ValueKey('task_${task.id}'),
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 1),
+        constraints: const BoxConstraints(minHeight: 12, maxHeight: 18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              _getPriorityColor(task.priority).withOpacity(0.9),
+              _getPriorityColor(task.priority).withOpacity(0.7),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: _getPriorityColor(task.priority).withOpacity(0.4),
+            width: 0.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _getPriorityColor(task.priority).withOpacity(0.3),
+              blurRadius: 2,
+              offset: const Offset(0, 1),
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: _getPriorityColor(task.priority).withOpacity(0.4),
-          width: 0.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _getPriorityColor(task.priority).withOpacity(0.3),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            task.title,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              shadows: [
-                Shadow(
-                  offset: const Offset(0.5, 0.5),
-                  blurRadius: 1.5,
-                  color: Colors.black.withOpacity(0.8),
-                ),
-                Shadow(
-                  offset: const Offset(-0.5, -0.5),
-                  blurRadius: 1,
-                  color: Colors.black.withOpacity(0.6),
-                ),
-              ],
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(6),
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            child: Text(
+              task.title,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    offset: const Offset(0.5, 0.5),
+                    blurRadius: 1.5,
+                    color: Colors.black.withOpacity(0.8),
+                  ),
+                  Shadow(
+                    offset: const Offset(-0.5, -0.5),
+                    blurRadius: 1,
+                    color: Colors.black.withOpacity(0.6),
+                  ),
+                ],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
       ),
@@ -777,7 +834,7 @@ class _IntegratedCalendarWithPomodoroPageState
                 children: [
                   Text(
                     _isToday(_selectedDate)
-                        ? '今天的任务'
+                        ? context.l10n('today_tasks', fallback: '今天的任务')
                         : _getFormattedDate(_selectedDate),
                     style: const TextStyle(
                       fontSize: 18,
@@ -919,18 +976,21 @@ class _IntegratedCalendarWithPomodoroPageState
                         },
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        '这一天还没有任务',
-                        style: TextStyle(
+                      Text(
+                        context.l10n('empty_state_title', fallback: '这一天还没有任务'),
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF0277BD),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        '点击右下角的 + 按钮添加新的任务',
-                        style: TextStyle(
+                      Text(
+                        context.l10n(
+                          'empty_state_subtitle',
+                          fallback: '点击右下角的 + 按钮添加新的任务',
+                        ),
+                        style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xFF0288D1),
                         ),
@@ -962,18 +1022,21 @@ class _IntegratedCalendarWithPomodoroPageState
                               ),
                             ],
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
+                              const Icon(
                                 CupertinoIcons.timer,
                                 color: Colors.white,
                                 size: 18,
                               ),
-                              SizedBox(width: 8),
+                              const SizedBox(width: 8),
                               Text(
-                                '开始专注时间',
-                                style: TextStyle(
+                                context.l10n(
+                                  'start_focus_time',
+                                  fallback: '开始专注时间',
+                                ),
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -1379,7 +1442,6 @@ class _IntegratedCalendarWithPomodoroPageState
     // 使用Dialog替代Overlay，确保时间选择器能正常工作
     showDialog<void>(
       context: context,
-      barrierDismissible: true,
       builder: (context) => BlocProvider.value(
         value: taskBloc,
         child: TaskCreationDialog(initialDate: _selectedDate),
@@ -1419,7 +1481,9 @@ class _IntegratedCalendarWithPomodoroPageState
     });
 
     // 显示提示消息
-    _showMessage('为任务"${task.title}"启动番茄钟');
+    _showMessage(
+      '${context.l10n('pomodoro', fallback: '番茄钟')} - ${task.title}',
+    );
   }
 
   void _showMessage(String message) {
@@ -1441,5 +1505,9 @@ class _IntegratedCalendarWithPomodoroPageState
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
+  }
+
+  void _showLanguageSwitcher() {
+    LanguageSwitcherDialog.show(context);
   }
 }

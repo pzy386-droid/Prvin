@@ -1,6 +1,6 @@
-import 'package:flutter/widget_previews.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 
 /// 简单的按钮预览
 @Preview(name: '主要按钮', group: 'UI组件', size: Size(200, 100))

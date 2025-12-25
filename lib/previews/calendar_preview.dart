@@ -1,7 +1,6 @@
-import 'package:flutter/widget_previews.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 
 /// 日历组件预览
 @Preview(name: '日历头部', group: '日历组件', size: Size(400, 100))
@@ -257,7 +256,6 @@ Widget _buildTaskBar(Color color) {
     height: 12,
     decoration: BoxDecoration(
       gradient: LinearGradient(
-        end: Alignment.centerRight,
         colors: [color.withOpacity(0.9), color.withOpacity(0.7)],
       ),
       borderRadius: BorderRadius.circular(6),
